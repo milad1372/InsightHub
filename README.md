@@ -1,6 +1,8 @@
 # InsightHub
 Visualizing GitHub Open Source Repositories
 
+Live Demo: https://rapid-domain-384109.de.r.appspot.com/
+
 A collection of visual representations of data designed to offer understanding about the programming languages used in open source repositories on GitHub. This information is based on a comprehensive snapshot of the contents of over 2.8 million GitHub repositories, which is stored in BigQuery, and the GitHub Programming Languages Data sourced from Kaggle.
 
 
@@ -27,13 +29,3 @@ provide several benefits to users:
 * Comparison of programming languages: The data visualizations can help users compare the usage of different programming languages across open source repositories on GitHub. This information can be useful for developers who want to assess the popularity of various languages and their suitability for particular tasks.
 
 * Identification of opportunities: The data visualizations can help users identify potential opportunities for collaboration or contribution to open source projects. Users can use the data to identify repositories that align with their interests and skills and contribute to them.
-
-![Logo](https://avatars.githubusercontent.com/u/9199177?s=48&v=4)
-
-
-## Acknowledgements
-
- - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
- - [Awesome README](https://github.com/matiassingers/awesome-readme)
- - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-
