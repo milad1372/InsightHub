@@ -1,10 +1,9 @@
 # InsightHub
-Visualizing GitHub Open Source Repositories
+From Adoption to Usage: Unveiling Programming Language Patterns and Trends in GitHub Repositories with InsightHub
 
 Live Demo: https://rapid-domain-384109.de.r.appspot.com/
 
-A collection of visual representations of data designed to offer understanding about the programming languages used in open source repositories on GitHub. This information is based on a comprehensive snapshot of the contents of over 2.8 million GitHub repositories, which is stored in BigQuery, and the GitHub Programming Languages Data sourced from Kaggle.
-
+In InsightHub, we conduct an in-depth analysis of programming language trends and usage in GitHub repositories by utilizing InsightHub, a comprehensive and interactive web application. By examining metadata from over 2.8 million open-source repositories, the study employs various data visualization techniques to explore the frequency and popularity of programming languages. InsightHub enables users to investigate language rankings, paradigms, types, and purposes based on the number of commits, pull requests, and repositories over time. The application facilitates the discovery of interesting insights from GitHub data, empowering users to make informed decisions about language adoption and usage. By offering a range of customizable data visualization components, this study contributes to a deeper understanding of the ever-evolving landscape of programming languages in the context of GitHub repositories
 
 
 InsightHub is an application designed to provide users with valuable insights into data and trends in a variety of domains. Its main aim is to help users make informed decisions based on accurate and relevant information.
