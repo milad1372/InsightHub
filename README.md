@@ -8,6 +8,27 @@ In InsightHub, we conduct an in-depth analysis of programming language trends an
 
 InsightHub is an application designed to provide users with valuable insights into data and trends in a variety of domains. Its main aim is to help users make informed decisions based on accurate and relevant information.
 
+### Instructions for Running Scripts in the Project
+In the project directory, you have access to the following scripts:
+#### 1. Start the Development Server
+
+## Installation
+
+Install InsightHub with npm
+
+```bash
+  npm start
+```
+
+This command runs the app in development mode. Open your browser and navigate to http://localhost:3000 to view the app. The page will automatically reload when you make changes to the code, and any lint errors will be displayed in the console.
+
+#### 2. Build the App for Production
+```bash
+  npm run build
+```
+
+Use this script to build the app for production in the build folder. It bundles React in production mode and optimizes the build for the best performance. The resulting build is minified, and the filenames include hashes, making your app ready for deployment. For more information about deployment, consult the appropriate documentation section.
+
 ### Benefit for User:
 
 - Data analysis: InsightHub uses advanced analytics techniques to analyze and visualize data from various sources. This allows users to gain a better understanding of trends, patterns, and insights that are relevant to their interests or business needs.
