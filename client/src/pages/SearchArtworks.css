@@ -1,0 +1,38 @@
+.artwork-card, .artwork-list {
+  border: 1px solid transparent;
+  transition: border 0.3s ease-in-out;
+}
+
+.artwork-card:hover, .artwork-list:hover {
+  border: 1px solid blue;
+}
+
+.artwork-img {
+  width: 15em;
+  height: 15em;
+  object-fit: cover;
+}
+
+.search-container {
+  padding: 1em;
+}
+
+.button-group {
+  display: flex;
+  justify-content: end;
+  margin-bottom: 1em;
+}
+
+.view-button {
+  margin-left: 0.5em;
+}
+
+.artwork-list {
+  padding: 1em;
+}
+
+.padtop{
+  padding-top: 1em;
+}
+
+
