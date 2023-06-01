@@ -6,9 +6,6 @@
 - [Technology](#Technology)
 - [Installation](#installation)
 - [Usage](#usage)
-- [License](#license)
-- [Contribution](#contribution)
-- [Questions](#questions)
 
 ## Description:
 
@@ -41,7 +38,6 @@ After installing npm packages, the application will be invoked by using the foll
 ```
 npm run develop
 ```
-
 
 - Create database on MongoDB Atlas:
 
