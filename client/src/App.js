@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import SearchedArtworks from "./pages/SearchArtworks";
 import SavedArtworks from "./pages/SavedArtworks";
@@ -12,6 +12,7 @@ import {
   createHttpLink,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import {getSavedArtworkIds} from "./utils/localStorage";
 
 // Construct main GraphQL API endpoint
 const httpLink = createHttpLink({
@@ -35,21 +36,50 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-function App() {
+
+
+const App = () => {
+  const [searchedArtworks, setSearchedArtworks] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const handleSharedVariableChange = (totalPages, artworkData) => {
+    setTotalPages(totalPages);
+    setSearchedArtworks(artworkData);
+    setCurrentPage(1);
+  };
+
   return (
-    <ApolloProvider client={client}>
-      <Router>
-        <>
-          <Navbar />
-          <Switch>
-            <Route exact path="/" component={SearchedArtworks} />
-            <Route exact path="/saved" component={SavedArtworks} />
-            <Route render={() => <h1 className="display-2">Wrong page!</h1>} />
-          </Switch>
-        </>
-      </Router>
-    </ApolloProvider>
+      <ApolloProvider client={client}>
+        <Router>
+          <>
+            <Navbar
+                searchedArtworks={searchedArtworks}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onSharedVariableChange={handleSharedVariableChange}
+            />
+            <Switch>
+              <Route
+                  exact
+                  path="/"
+                  render={(props) => (
+                      <SearchedArtworks
+                          {...props}
+                          searchedArtworks={searchedArtworks}
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                      />
+                  )}
+              />
+              <Route exact path="/saved" component={SavedArtworks} />
+              <Route render={() => <h1 className="display-2">Wrong page!</h1>} />
+            </Switch>
+          </>
+        </Router>
+      </ApolloProvider>
   );
-}
+};
 
 export default App;
+

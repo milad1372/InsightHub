@@ -19,60 +19,16 @@ import { SAVE_ARTWORK } from "../utils/mutations";
 import { useMutation } from "@apollo/react-hooks";
 import "./SearchArtworks.css";
 
-const SearchArtworks = () => {
-  const [searchedArtworks, setSearchedArtworks] = useState([]);
-  const [searchInput, setSearchInput] = useState("");
+const SearchArtworks = ({ totalPages, searchedArtworks }) => {
   const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
   const [view, setView] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     return () => saveArtworkIds(savedArtworkIds);
   });
 
   const [saveArtwork] = useMutation(SAVE_ARTWORK);
-
-  const handleFormSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!searchInput) {
-      return false;
-    }
-
-    try {
-      const response = await fetch(
-        `https://api.europeana.eu/record/v2/search.json?query=${searchInput}&wskey=odumeldiwin`
-      );
-
-      if (!response.ok) {
-        throw new Error("something went wrong!");
-      }
-
-      const { items } = await response.json();
-
-      const artworkData = items.map((artwork) => ({
-        artworkId: artwork.id,
-        title: artwork.title[0],
-        type: artwork.type,
-        image: artwork.edmPreview
-          ? artwork.edmPreview[0]
-          : "No image available",
-        description: artwork.dcDescription
-          ? artwork.dcDescription[0]
-          : "No description available",
-      }));
-
-      const totalPages = Math.ceil(artworkData.length / 10);
-      setTotalPages(totalPages);
-
-      setSearchedArtworks(artworkData);
-      setSearchInput("");
-      setCurrentPage(1);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const handleSaveArtwork = async (artworkId) => {
     const artworkToSave = searchedArtworks.find(
@@ -211,25 +167,6 @@ const SearchArtworks = () => {
   return (
     <>
       <Container className="search-container">
-        <Form onSubmit={handleFormSubmit}>
-          <Form.Row>
-            <Col xs={12} md={8}>
-              <Form.Control
-                name="searchInput"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                type="text"
-                size="lg"
-                placeholder="Search for an artwork"
-              />
-            </Col>
-            <Col xs={12} md={4}>
-              <Button type="submit" variant="success" size="lg">
-                Search
-              </Button>
-            </Col>
-          </Form.Row>
-        </Form>
         <h5 className="padtop">
           {searchedArtworks.length ? `${searchedArtworks.length} results` : ""}
         </h5>
