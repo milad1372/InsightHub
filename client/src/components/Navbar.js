@@ -87,6 +87,7 @@ const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
                                 placeholder="Search 50+ million items"
                                 variant="outlined"
                                 fullWidth
+                                autoFocus
                                 className={classes.textField}
                                 name={"query"}
                                 id={"query"}
