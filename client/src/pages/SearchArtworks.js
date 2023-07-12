@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "../css/common.css";
 import {
   Jumbotron,
   Container,
@@ -8,7 +9,7 @@ import {
   Card,
   CardColumns,
   ListGroup,
-  Row,
+  Row, Nav,
 } from "react-bootstrap";
 import { BsGrid, BsList } from "react-icons/bs";
 
@@ -18,6 +19,8 @@ import { saveArtworkIds, getSavedArtworkIds } from "../utils/localStorage";
 import { SAVE_ARTWORK } from "../utils/mutations";
 import { useMutation } from "@apollo/react-hooks";
 import "./SearchArtworks.css";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faArrowLeft, faArrowRight, faBook, faSearch} from "@fortawesome/free-solid-svg-icons";
 
 const SearchArtworks = ({ totalPages, searchedArtworks }) => {
   const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
@@ -138,29 +141,62 @@ const SearchArtworks = ({ totalPages, searchedArtworks }) => {
   );
 
   const Pagination = () => {
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageNumbers.push(i);
-    }
+    const handleKeyPress = (e) => {
+      if ([46, 8, 9, 27, 110, 190].indexOf(e.keyCode) !== -1 ||
+          (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+          (e.keyCode >= 35 && e.keyCode <= 40)) {
+        return;
+      }
+      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+      }
+
+      if (e.key === 'Enter') {
+        const page = e.target.value ? Number(e.target.value) : 0;
+        if (page >= 1 && page <= totalPages) {
+          handlePageChange(page);
+        }
+      }
+    };
+
+    const nextPage = () => {
+      if (currentPage < totalPages) {
+        handlePageChange(currentPage + 1);
+      }
+    };
+
+    const previousPage = () => {
+      if (currentPage > 1) {
+        handlePageChange(currentPage - 1);
+      }
+    };
 
     return (
-      <nav>
-        <ul className="pagination">
-          {pageNumbers.map((number) => (
-            <li
-              key={number}
-              className={`page-item${currentPage === number ? " active" : ""}`}
-            >
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(number)}
-              >
-                {number}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+
+        <div className="d-flex align-items-center">
+
+          <button className="btn-page-nav mx-3" onClick={previousPage}>
+            <FontAwesomeIcon icon={faArrowLeft}/>
+            &nbsp;PREVIOUS
+          </button>
+
+          <input
+              type="number"
+              className="form-control mx-3"
+              min={1}
+              max={totalPages}
+              onKeyDown={handleKeyPress}
+              defaultValue={currentPage}
+              style={{width: '100px', textAlign: "center"}}
+          />
+
+          <span className="mx-3">OF {totalPages}</span>
+          <button className="btn-page-nav mx-3" onClick={nextPage}>
+            NEXT&nbsp;
+            <FontAwesomeIcon icon={faArrowRight}/>
+          </button>
+
+        </div>
     );
   };
 
@@ -179,7 +215,11 @@ const SearchArtworks = ({ totalPages, searchedArtworks }) => {
           </Button>
         </div>
         {view === "grid" ? <CardView /> : <ListView />}
-        {totalPages > 1 && <Pagination />}
+        {totalPages > 1 &&
+        <div className="d-flex justify-content-center">
+          <Pagination />
+        </div>
+        }
       </Container>
     </>
   );
