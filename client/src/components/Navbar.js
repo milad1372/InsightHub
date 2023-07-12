@@ -1,10 +1,10 @@
-import React, {useRef, useState} from "react";
+import React, {useState} from "react";
 import { Link } from "react-router-dom";
 import {Navbar, Nav, Container, Modal, Tab} from "react-bootstrap";
 import "../css/navbar.css";
 import Auth from "../utils/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHome, faBook, faBars, faUser, faSearch, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faBars, faUser, faSearch } from "@fortawesome/free-solid-svg-icons";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -25,7 +25,8 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
+// const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
+const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange }) => {
     // set modal display state
     const [showModal, setShowModal] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
@@ -40,9 +41,13 @@ const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
         }
 
         try {
-            const response = await fetch(
-                `https://api.europeana.eu/record/v2/search.json?query=${searchInput}&wskey=odumeldiwin`
-            );
+            const filterQuery = Object.entries(filters)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
+
+      const response = await fetch(
+        `https://api.europeana.eu/record/v2/search.json?query=${searchInput}&${filterQuery}&profile=standard&rows=200&start=1&wskey=odumeldiwin`
+      );
 
             if (!response.ok) {
                 throw new Error("something went wrong!");

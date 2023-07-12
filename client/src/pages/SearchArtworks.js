@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import "../css/common.css";
 import {
-  Jumbotron,
   Container,
   Col,
   Form,
@@ -9,7 +9,7 @@ import {
   Card,
   CardColumns,
   ListGroup,
-  Row, Nav,
+  Row,
 } from "react-bootstrap";
 import { BsGrid, BsList } from "react-icons/bs";
 
@@ -20,12 +20,40 @@ import { SAVE_ARTWORK } from "../utils/mutations";
 import { useMutation } from "@apollo/react-hooks";
 import "./SearchArtworks.css";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faArrowLeft, faArrowRight, faBook, faSearch} from "@fortawesome/free-solid-svg-icons";
+import {faArrowLeft, faArrowRight} from "@fortawesome/free-solid-svg-icons";
 
-const SearchArtworks = ({ totalPages, searchedArtworks }) => {
+// Initialize the options for filters
+const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }];
+const CONTENT_TIER_OPTIONS = [{ value: "4", label: "4" }];
+const TYPE_OPTIONS = [{ value: "IMAGE", label: "Image" }];
+const COUNTRY_OPTIONS = [{ value: "Europe", label: "Europe" }];
+const LANGUAGE_OPTIONS = [{ value: "mul", label: "Multiple Languages" }];
+const PROVIDER_OPTIONS = [{ value: "Daguerreobase", label: "Daguerreobase" }];
+const DATA_PROVIDER_OPTIONS = [{ value: "National Science and Media Museum Bradford", label: "National Science and Media Museum Bradford" }];
+const COLOUR_PALETTE_OPTIONS = [{ value: "#000000", label: "Black" }];
+const IMAGE_ASPECTRATIO_OPTIONS = [{ value: "landscape", label: "Landscape" }];
+const IMAGE_SIZE_OPTIONS = [{ value: "large", label: "Large" }];
+const MIME_TYPE_OPTIONS = [{ value: "image/jpeg", label: "JPEG" }];
+const RIGHTS_OPTIONS = [{ value: "* /publicdomain/mark/*", label: "Public Domain" }];
+
+const SearchArtworks = ({ totalPages, searchedArtworks, filters, onFilterChange }) => {
   const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
   const [view, setView] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // States for filters
+  const [selectedCollection, setSelectedCollection] = useState([]);
+  const [selectedContentTier, setSelectedContentTier] = useState([]);
+  const [selectedType, setSelectedType] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState([]);
+  const [selectedDataProvider, setSelectedDataProvider] = useState([]);
+  const [selectedColourPalette, setSelectedColourPalette] = useState([]);
+  const [selectedImageAspectRatio, setSelectedImageAspectRatio] = useState([]);
+  const [selectedImageSize, setSelectedImageSize] = useState([]);
+  const [selectedMimeType, setSelectedMimeType] = useState([]);
+  const [selectedRights, setSelectedRights] = useState([]);
 
   useEffect(() => {
     return () => saveArtworkIds(savedArtworkIds);
@@ -140,6 +168,122 @@ const SearchArtworks = ({ totalPages, searchedArtworks }) => {
     </CardColumns>
   );
 
+  const Filters = () => (
+    <div>
+      <h2>Filter results</h2>
+      <Form>
+      <Form.Group controlId="collectionFilter">
+        <Form.Label>Collection</Form.Label>
+        <Select
+          options={COLLECTION_OPTIONS}
+          isMulti
+          value={filters.collection}
+          onChange={(selectedOption) => onFilterChange({ ...filters, collection: selectedOption })}
+        />
+      </Form.Group>
+        <Form.Group controlId="contentTierFilter">
+          <Form.Label>Content Tier</Form.Label>
+          <Select
+            options={CONTENT_TIER_OPTIONS}
+            isMulti
+            value={selectedContentTier}
+            onChange={(selectedOption) => setSelectedContentTier(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="typeFilter">
+          <Form.Label>Type</Form.Label>
+          <Select
+            options={TYPE_OPTIONS}
+            isMulti
+            value={selectedType}
+            onChange={(selectedOption) => setSelectedType(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="countryFilter">
+          <Form.Label>Country</Form.Label>
+          <Select
+            options={COUNTRY_OPTIONS}
+            isMulti
+            value={selectedCountry}
+            onChange={(selectedOption) => setSelectedCountry(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="languageFilter">
+          <Form.Label>Language</Form.Label>
+          <Select
+            options={LANGUAGE_OPTIONS}
+            isMulti
+            value={selectedLanguage}
+            onChange={(selectedOption) => setSelectedLanguage(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="providerFilter">
+          <Form.Label>Provider</Form.Label>
+          <Select
+            options={PROVIDER_OPTIONS}
+            isMulti
+            value={selectedProvider}
+            onChange={(selectedOption) => setSelectedProvider(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="dataProviderFilter">
+          <Form.Label>Data Provider</Form.Label>
+          <Select
+            options={DATA_PROVIDER_OPTIONS}
+            isMulti
+            value={selectedDataProvider}
+            onChange={(selectedOption) => setSelectedDataProvider(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="colourPaletteFilter">
+          <Form.Label>Colour Palette</Form.Label>
+          <Select
+            options={COLOUR_PALETTE_OPTIONS}
+            isMulti
+            value={selectedColourPalette}
+            onChange={(selectedOption) => setSelectedColourPalette(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="imageAspectRatioFilter">
+          <Form.Label>Image Aspect Ratio</Form.Label>
+          <Select
+            options={IMAGE_ASPECTRATIO_OPTIONS}
+            isMulti
+            value={selectedImageAspectRatio}
+            onChange={(selectedOption) => setSelectedImageAspectRatio(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="imageSizeFilter">
+          <Form.Label>Image Size</Form.Label>
+          <Select
+            options={IMAGE_SIZE_OPTIONS}
+            isMulti
+            value={selectedImageSize}
+            onChange={(selectedOption) => setSelectedImageSize(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="mimeTypeFilter">
+          <Form.Label>Mime Type</Form.Label>
+          <Select
+            options={MIME_TYPE_OPTIONS}
+            isMulti
+            value={selectedMimeType}
+            onChange={(selectedOption) => setSelectedMimeType(selectedOption)}
+          />
+        </Form.Group>
+        <Form.Group controlId="rightsFilter">
+          <Form.Label>Rights</Form.Label>
+          <Select
+            options={RIGHTS_OPTIONS}
+            isMulti
+            value={selectedRights}
+            onChange={(selectedOption) => setSelectedRights(selectedOption)}
+          />
+        </Form.Group>
+      </Form>
+    </div>
+  );
+
   const Pagination = () => {
     const handleKeyPress = (e) => {
       if ([46, 8, 9, 27, 110, 190].indexOf(e.keyCode) !== -1 ||
@@ -202,7 +346,9 @@ const SearchArtworks = ({ totalPages, searchedArtworks }) => {
 
   return (
     <>
-      <Container className="search-container">
+      <Container fluid className="search-container">
+        <Row>
+        <Col xs={9}>
         <h5 className="padtop">
           {searchedArtworks.length ? `${searchedArtworks.length} results` : ""}
         </h5>
@@ -220,6 +366,11 @@ const SearchArtworks = ({ totalPages, searchedArtworks }) => {
           <Pagination />
         </div>
         }
+        </Col>
+        <Col xs={3}>
+            <Filters />
+          </Col>
+        </Row>
       </Container>
     </>
   );
