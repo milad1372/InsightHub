@@ -1,10 +1,10 @@
 import React, {useState} from "react";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 import {Navbar, Nav, Container, Modal, Tab} from "react-bootstrap";
 import "../css/navbar.css";
 import Auth from "../utils/auth";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faBars, faUser, faSearch } from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faBook, faBars, faUser, faSearch} from "@fortawesome/free-solid-svg-icons";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -12,6 +12,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import makeStyles from "@mui/styles/makeStyles";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignupForm";
+import getRecords from "../api/getRecordsApi";
+
 const useStyles = makeStyles((theme) => ({
     textField: {
         "& .MuiOutlinedInput-root": {
@@ -26,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
-const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange }) => {
+const AppNavbar = ({totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange}) => {
     // set modal display state
     const [showModal, setShowModal] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
@@ -42,48 +44,26 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
 
         try {
             const filterQuery = Object.entries(filters)
-        .map(([key, value]) => `${key}=${value}`)
-        .join('&');
+                .map(([key, value]) => `${key}=${value}`)
+                .join('&');
+            const response = await getRecords(searchInput, filterQuery, 1);
 
-      const response = await fetch(
-        `https://api.europeana.eu/record/v2/search.json?query=${searchInput}&${filterQuery}&profile=standard&rows=200&start=1&wskey=odumeldiwin`
-      );
-
-            if (!response.ok) {
-                throw new Error("something went wrong!");
-            }
-
-            const { items } = await response.json();
-
-            const artworkData = items.map((artwork) => ({
-                artworkId: artwork.id,
-                title: artwork.title[0],
-                type: artwork.type,
-                image: artwork.edmPreview
-                    ? artwork.edmPreview[0]
-                    : "No image available",
-                description: artwork.dcDescription
-                    ? artwork.dcDescription[0]
-                    : "No description available",
-            }));
-
-            const totalPages = Math.ceil(artworkData.length / 10);
-            onSharedVariableChange(totalPages, artworkData);
+            onSharedVariableChange(response.totalPages, response.artworkData);
         } catch (err) {
             console.error(err);
         }
     };
 
 
-    const handleQueryChange= (e) =>{
+    const handleQueryChange = (e) => {
         e.preventDefault();
-        let value= e.target.value;
+        let value = e.target.value;
         setSearchInput(value);
     }
 
 
     const SearchBar = () => (
-        <Navbar  expand="lg">
+        <Navbar expand="lg">
             <Grid container>
                 <Grid xs={12} item={true}>
                     <div className="search-input">
@@ -118,12 +98,12 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
         <Navbar bg="light" variant="light" expand="lg">
             <Container fluid>
                 <Navbar.Brand as={Link} to="/">
-                    <FontAwesomeIcon icon={faBars} />
+                    <FontAwesomeIcon icon={faBars}/>
                 </Navbar.Brand>
                 <Navbar.Brand as={Link} to="/">
-                    <img src="./europeana.svg" alt="Europeana" />
+                    <img src="./europeana.svg" alt="Europeana"/>
                 </Navbar.Brand>
-                <Navbar.Toggle aria-controls="navbar" />
+                <Navbar.Toggle aria-controls="navbar"/>
                 <Navbar.Collapse id="navbar">
                     <Nav className="ml-auto">
                         {/* <Nav.Link as={Link} to="/">
@@ -133,10 +113,10 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
                         {Auth.loggedIn() ? (
                             <>
                                 <Nav.Link as={Link} to="/saved">
-                                    <FontAwesomeIcon icon={faBook} /> See Your Books
+                                    <FontAwesomeIcon icon={faBook}/> See Your Books
                                 </Nav.Link>
                                 <Nav.Link onClick={Auth.logout}>
-                                    <FontAwesomeIcon icon={faUser} /> Logout
+                                    <FontAwesomeIcon icon={faUser}/> Logout
                                 </Nav.Link>
                             </>
                         ) : (
@@ -145,7 +125,7 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
                     </Nav>
                 </Navbar.Collapse>
                 <Navbar.Brand as={Link} to="/">
-                    <FontAwesomeIcon icon={faSearch} onClick={() => setShowSearchBar(true)} />
+                    <FontAwesomeIcon icon={faSearch} onClick={() => setShowSearchBar(true)}/>
                 </Navbar.Brand>
             </Container>
         </Navbar>
@@ -154,7 +134,7 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
 
     return (
         <>
-            {showSearchBar ? <SearchBar /> : mainNavBar()}
+            {showSearchBar ? <SearchBar/> : mainNavBar()}
             <Modal
                 size="md"
                 show={showModal}
@@ -178,10 +158,10 @@ const AppNavbar = ({ totalPages, searchedArtworks, onSharedVariableChange, filte
                     <Modal.Body>
                         <Tab.Content>
                             <Tab.Pane eventKey="login">
-                                <LoginForm handleModalClose={() => setShowModal(false)} />
+                                <LoginForm handleModalClose={() => setShowModal(false)}/>
                             </Tab.Pane>
                             <Tab.Pane eventKey="signup">
-                                <SignUpForm handleModalClose={() => setShowModal(false)} />
+                                <SignUpForm handleModalClose={() => setShowModal(false)}/>
                             </Tab.Pane>
                         </Tab.Content>
                     </Modal.Body>
