@@ -26,7 +26,13 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import getRecords from "../api/getRecordsApi";
 import Chip from "@mui/material/Chip";
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import GridViewIcon from '@mui/icons-material/GridView';
+import AutoAwesomeMosaicOutlined from '@mui/icons-material/AutoAwesomeMosaicOutlined';
 import {withStyles} from "@material-ui/core/styles";
+import IconButton from '@material-ui/core/IconButton';
+import makeStyles from "@material-ui/core/styles/makeStyles";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 // Initialize the options for filters
 const COLLECTION_OPTIONS = [{value: "archaeology", label: "Archaeology"}];
@@ -52,7 +58,7 @@ const StyledChip = withStyles({
     icon: {
         position: "absolute",
         right: 10,
-        backgroundColor:'#000'
+        backgroundColor: '#000'
     }
 })(Chip);
 
@@ -117,7 +123,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
     const reorderArtworkData = (artworkData) => {
         const n = artworkData.length;
         console.log(n)
-        if(n!=0) {
+        if (n != 0) {
             const half = Math.ceil(n / 2);
 
             const firstHalf = artworkData.slice(0, half);
@@ -129,11 +135,11 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                 reorderedData.push(secondHalf[i]);
             }
             return reorderedData;
-        }else {
+        } else {
             return [];
         }
     }
-    const getPaginatedArtworks = async  () => {
+    const getPaginatedArtworks = async () => {
         const response = await getRecords(
             localStorage.getItem('currentQuery'),
             localStorage.getItem('currentFilter'),
@@ -143,7 +149,12 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         return response?.artworkData || [];
     };
 
-    const ListView =  () => {
+    const handleCardClick = (id) => {
+        let link = 'https://www.europeana.eu/en/item' + id;
+        window.open(link, "_blank");
+    };
+
+    const ListView = () => {
 
         const [artworkData, setArtworkData] = useState([]);
 
@@ -154,97 +165,104 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         }, []);
 
 
-        const handleCardClick = (id) => {
-            let link='https://www.europeana.eu/en/item'+id;
-            window.open(link, "_blank");
-        };
-
         return (
             <Container>
                 <Row>
-                    { artworkData.map((artwork) => (
-                        <Col xs={12} md={6}>
-                            <Card className="artwork-card"  >
-                                <Row onClick={() => handleCardClick(artwork.artworkId)}>
-                                    <Col xs={8}>
-                                        <Card.Body>
-                                            <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
-                                            <Card.Title>{artwork.title}</Card.Title>
-                                            <Card.Text>{(artwork.description!=null && artwork.description!="")?artwork.description.slice(0, 238)+"...":""}</Card.Text>
-                                            <div className={"data-and-buttons-wrapper d-flex"}>
+                    {artworkData.length == 0 ?
+                        <CircularProgress
+                            size={20}
+                            style={{
+                                color: 'black',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                marginTop: `${-80 / 2}px`,
+                                marginLeft: `${-80 / 2}px`
+                            }}/>
+                        : artworkData.map((artwork) => (
+                            <Col xs={12} md={6}>
+                                <Card className="artwork-card">
+                                    <Row onClick={() => handleCardClick(artwork.artworkId)}>
+                                        <Col xs={8}>
+                                            <Card.Body>
+                                                <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
+                                                <Card.Title>{artwork.title}</Card.Title>
+                                                <Card.Text>{(artwork.description != null && artwork.description != "") ? artwork.description.slice(0, 238) + "..." : ""}</Card.Text>
+                                                <div className={"data-and-buttons-wrapper d-flex"}>
                                             <span data-qa="rights statement"
                                                   className="license-label d-inline-flex align-items-center text-uppercase">
-                                              <FontAwesomeIcon icon={faDriversLicense} />
+                                              <FontAwesomeIcon icon={faDriversLicense}/>
                                                 <span className="license-label-text">
-                                                    {(artwork.license!=null && artwork.license!= undefined )? artwork.license.indexOf("rightsstatements")>-1? "In Copyright": "CC BY 4.0":""}
+                                                    {(artwork.license != null && artwork.license != undefined) ? artwork.license.indexOf("rightsstatements") > -1 ? "In Copyright" : "CC BY 4.0" : ""}
                                                </span>
                                             </span>
-                                            <span className="d-inline-flex align-items-center text-uppercase">
+                                                    <span className="d-inline-flex align-items-center text-uppercase">
                                                 <InsertDriveFileOutlinedIcon/>
-                                                {artwork.type}
+                                                        {artwork.type}
                                             </span>
-                                            <div data-qa="user buttons" className="user-buttons">
-                                                <div data-qa="item add button">
-                                                    <button data-qa="add button" aria-label="Add to gallery"
-                                                            title="Add this item to a gallery." type="button"
-                                                            className="btn add-button text-uppercase d-inline-flex align-items-center btn-light-flat">
-                                                       <AddCircleIcon/>
-                                                        Save
-                                                    </button>
+                                                    <div data-qa="user buttons" className="user-buttons">
+                                                        <div data-qa="item add button">
+                                                            <button data-qa="add button" aria-label="Add to gallery"
+                                                                    title="Add this item to a gallery." type="button"
+                                                                    className="btn add-button text-uppercase d-inline-flex align-items-center btn-light-flat">
+                                                                <AddCircleIcon/>
+                                                                Save
+                                                            </button>
+                                                        </div>
+                                                        <div data-qa="item like button">
+                                                            <button data-qa="like button" aria-label="Like"
+                                                                    title="Save this item to your Likes."
+                                                                    type="button" aria-pressed="false"
+                                                                    autocomplete="off"
+                                                                    className="btn like-button text-uppercase d-inline-flex align-items-center btn-light-flat">
+                                                                <FavoriteIcon/>
+                                                                Like
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                <div data-qa="item like button">
-                                                    <button data-qa="like button" aria-label="Like"
-                                                            title="Save this item to your Likes."
-                                                            type="button" aria-pressed="false" autocomplete="off"
-                                                            className="btn like-button text-uppercase d-inline-flex align-items-center btn-light-flat">
-                                                        <FavoriteIcon/>
-                                                        Like
-                                                    </button>
-                                                    </div>
-                                            </div>
-                                            </div>
-                                            {Auth.loggedIn() && (
-                                                <Button
-                                                    disabled={savedArtworkIds?.some(
-                                                        (savedArtworkId) => savedArtworkId === artwork.artworkId
-                                                    )}
-                                                    className="btn-block btn-info"
-                                                    onClick={() => handleSaveArtwork(artwork.artworkId)}
-                                                >
-                                                    {savedArtworkIds?.some(
-                                                        (savedArtworkId) => savedArtworkId === artwork.artworkId
-                                                    )
-                                                        ? "Saved"
-                                                        : "Save"}
-                                                </Button>
+                                                </div>
+                                                {Auth.loggedIn() && (
+                                                    <Button
+                                                        disabled={savedArtworkIds?.some(
+                                                            (savedArtworkId) => savedArtworkId === artwork.artworkId
+                                                        )}
+                                                        className="btn-block btn-info"
+                                                        onClick={() => handleSaveArtwork(artwork.artworkId)}
+                                                    >
+                                                        {savedArtworkIds?.some(
+                                                            (savedArtworkId) => savedArtworkId === artwork.artworkId
+                                                        )
+                                                            ? "Saved"
+                                                            : "Save"}
+                                                    </Button>
+                                                )}
+                                            </Card.Body>
+                                        </Col>
+                                        <Col xs={4}>
+
+                                            {artwork.image && artwork.image !== "No image available" ? (
+                                                <div className="card-image-wrapper">
+                                                    <Card.Img
+                                                        src={artwork.image}
+                                                        alt={`The image for ${artwork.title}`}
+                                                        className="card-image"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="card-image-wrapper">
+                                                    <Card.Img
+                                                        src="./url.png" // Provide the path to the fallback image in the /public directory
+                                                        alt="Fallback"
+                                                        className="card-image"
+                                                    />
+                                                </div>
                                             )}
-                                        </Card.Body>
-                                    </Col>
-                                    <Col xs={4}>
 
-                                        {artwork.image && artwork.image !== "No image available" ? (
-                                            <div className="card-image-wrapper">
-                                                <Card.Img
-                                                    src={artwork.image}
-                                                    alt={`The image for ${artwork.title}`}
-                                                    className="card-image"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="card-image-wrapper">
-                                                <Card.Img
-                                                    src="./url.png" // Provide the path to the fallback image in the /public directory
-                                                    alt="Fallback"
-                                                    className="card-image"
-                                                />
-                                            </div>
-                                        )}
-
-                                    </Col>
-                                </Row>
-                            </Card>
-                        </Col>
-                    ))}
+                                        </Col>
+                                    </Row>
+                                </Card>
+                            </Col>
+                        ))}
                 </Row>
             </Container>
         );
@@ -253,33 +271,168 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
 
     const CardView = () => {
         const [artworkData, setArtworkData] = useState([]);
+        const [hoveredCard, setHoveredCard] = useState(null);
 
+        const handleCardHover = (artworkId) => {
+            setHoveredCard(artworkId);
+        };
+
+        const handleCardLeave = () => {
+            setHoveredCard(null);
+        };
         useEffect(() => {
             getPaginatedArtworks().then((data) => {
                 setArtworkData(data);
             });
         }, []);
 
-
-       return( <CardColumns>
-            {artworkData.map((artwork) => (
-                <Card key={artwork.artworkId} className="artwork-card">
-                    {artwork.image ? (
-                        <Card.Img
-                            src={artwork.image}
-                            alt={`The image for ${artwork.title}`}
-                            variant="top"
-                        />
-                    ) : null}
-                    <Card.Body>
-                        <Card.Title>{artwork.title}</Card.Title>
-                        <Card.Text>{artwork.description.slice(0, 240)}...</Card.Text>
-                        {/* rest of the code */}
-                    </Card.Body>
-                </Card>
-            ))}
-        </CardColumns>);
+        return (
+            <Container className="card-container-grid mx-0">
+                {artworkData.length == 0 ?
+                    <CircularProgress
+                        size={20}
+                        style={{
+                            color: 'black',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            marginTop: `${-80 / 2}px`,
+                            marginLeft: `${-80 / 2}px`
+                        }}/>
+                    : artworkData.map((artwork) => (
+                        <Card key={artwork.artworkId} className="artwork-card-grid"
+                              onClick={() => handleCardClick(artwork.artworkId)}
+                              onMouseEnter={() => handleCardHover(artwork.artworkId)}
+                              onMouseLeave={handleCardLeave}>
+                            {/* Card image */}
+                            {artwork.image && artwork.image !== "No image available" ? (
+                                <div>
+                                    <Card.Img className="card-image-grid"
+                                              src={artwork.image}
+                                              alt={`The image for ${artwork.title}`}
+                                              variant="top"
+                                    />
+                                    {hoveredCard === artwork.artworkId && (
+                                        <div className="icon-container">
+                                            <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                           className="hover-icon"/>
+                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                          className="hover-icon"/>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    <Card.Img className="card-image-grid"
+                                              src="./url.png"
+                                              alt="Fallback"
+                                              variant="top"
+                                    />
+                                    {hoveredCard === artwork.artworkId && (
+                                        <div className="icon-container">
+                                            <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                           className="hover-icon"/>
+                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                          className="hover-icon"/>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {/* Card body */}
+                            <Card.Body>
+                                <Card.Title>{artwork.title}</Card.Title>
+                                <Card.Text>{artwork.dcCreator}</Card.Text>
+                                <Card.Text>{artwork.dataProvider}</Card.Text>
+                                {/* rest of the code */}
+                            </Card.Body>
+                        </Card>
+                    ))}
+            </Container>
+        );
     };
+
+
+    const MosaicView = () => {
+
+        const [artworkData, setArtworkData] = useState([]);
+        const [hoveredCard, setHoveredCard] = useState(null);
+
+        const handleCardHover = (artworkId) => {
+            setHoveredCard(artworkId);
+        };
+
+        const handleCardLeave = () => {
+            setHoveredCard(null);
+        };
+        useEffect(() => {
+            getPaginatedArtworks().then((data) => {
+                setArtworkData(data);
+            });
+        }, []);
+
+        return (
+            <Container className="card-container-grid mx-0">
+                {artworkData.length == 0 ?
+                    <CircularProgress
+                        size={20}
+                        style={{
+                            color: 'black',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            marginTop: `${-80 / 2}px`,
+                            marginLeft: `${-80 / 2}px`
+                        }}/>
+                    : artworkData.map((artwork) => (
+                        <Card
+                            key={artwork.artworkId}
+                            className="artwork-card-grid"
+                            onMouseEnter={() => handleCardHover(artwork.artworkId)}
+                            onMouseLeave={handleCardLeave}
+                            onClick={() => handleCardClick(artwork.artworkId)}
+                        >
+                            {/* Card image */}
+                            {artwork.image && artwork.image !== "No image available" ? (
+                                <div>
+                                    <Card.Img
+                                        className="card-image-grid"
+                                        src={artwork.image}
+                                        alt={`The image for ${artwork.title}`}
+                                        variant="top"
+                                    />
+                                    {hoveredCard === artwork.artworkId && (
+                                        <div className="icon-container">
+                                            <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                           className="hover-icon"/>
+                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                          className="hover-icon"/>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    <Card.Img
+                                        className="card-image-grid"
+                                        src="./url.png"
+                                        alt="Fallback"
+                                        variant="top"
+                                    />
+                                    {hoveredCard === artwork.artworkId && (
+                                        <div className="icon-container">
+                                            <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                           className="hover-icon"/>
+                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                                          className="hover-icon"/>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </Card>
+                    ))}
+            </Container>
+        );
+    };
+
 
     const Filters = () => (
         <div>
@@ -430,7 +583,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
 
         return (
 
-            <div className="d-flex align-items-center">
+            <div className="pagination-ep d-flex align-items-center">
 
                 <button className="btn-page-nav mx-3" onClick={previousPage}>
                     <FontAwesomeIcon icon={faArrowLeft}/>
@@ -447,7 +600,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                     style={{width: '100px', textAlign: "center"}}
                 />
 
-                <span className="mx-3">OF {totalPages}</span>
+                <span className="mx-3">OF {Math.floor(totalPages / 24)}</span>
                 <button className="btn-page-nav mx-3" onClick={nextPage}>
                     NEXT&nbsp;
                     <FontAwesomeIcon icon={faArrowRight}/>
@@ -457,43 +610,61 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         );
     };
 
-    const handleDelete=()=>{}
+    const handleDelete = () => {
+    }
 
     return (
         <>
-            <Container fluid className="search-container">
+            <Container fluid className="search-container mx-0 px-8">
                 <Row>
-                    <Col xs={9}>
-                        <h5 className="padtop">
-                            {(`${totalRecords.toLocaleString()} RESULTS FOR`)}
+                    <Col xs={10}>
+                        <Row>
+                            <Col xs={10}>
+                                <h5 className="padtop">
+                                    {(`${totalRecords.toLocaleString()} RESULTS FOR`)}
 
-                            <StyledChip
-                                style={{
-                                    backgroundColor: '#daeaf8',
-                                    color: '#4d4d4d'
-                                }}
-                                label={localStorage.getItem('currentQuery')}
-                                onDelete={() => handleDelete()}
-                            />
-                        </h5>
-                        <div className="button-group">
-                            <Button className="view-button" onClick={() => setView("grid")}>
-                                <BsGrid/>
-                            </Button>
-                            <Button className="view-button" onClick={() => setView("list")}>
-                                <BsList/>
-                            </Button>
-                        </div>
+                                    <StyledChip
+                                        style={{
+                                            backgroundColor: '#daeaf8',
+                                            color: '#4d4d4d',
+                                            margin: '6px'
+                                        }}
+                                        label={localStorage.getItem('currentQuery')}
+                                        onDelete={() => handleDelete()}
+                                    />
+                                </h5>
+                            </Col>
+                            <Col xs={2}>
+                                <div className="button-group">
+                                    <div className="icon-group">
+                                        <FormatListBulletedIcon
+                                            className={view === 'list' ? 'selected-icon' : 'icon'}
+                                            onClick={() => setView('list')}
+                                        />
+                                        <GridViewIcon
+                                            className={view === 'grid' ? 'selected-icon' : 'icon'}
+                                            onClick={() => setView('grid')}
+                                        />
+                                        <AutoAwesomeMosaicOutlined
+                                            className={view === 'mosaic' ? 'selected-icon' : 'icon'}
+                                            onClick={() => setView('mosaic')}
+                                        />
+                                    </div>
+                                </div>
+                            </Col>
+
+                        </Row>
                         <div className={"card-container"}>
-                            {view === "grid" ? <CardView/> : <ListView/>}
+                            {view === "grid" ? <CardView/> : view === "list" ? <ListView/> : <MosaicView/>}
                         </div>
                         {totalPages > 1 &&
                         <div className="d-flex justify-content-center">
                             <Pagination/>
                         </div>
+
                         }
                     </Col>
-                    <Col xs={3}>
+                    <Col xs={2}>
                         <Filters/>
                     </Col>
                 </Row>

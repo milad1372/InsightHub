@@ -43,6 +43,7 @@ const getRecords = async function (searchInput, filterQuery, pageNumber) {
             title: artwork.title[0],
             license: artwork.rights[0],
             dataProvider: artwork.dataProvider[0],
+            dcCreator: artwork.dcCreator?artwork.dcCreator[0]:"",
             type: artwork.type,
             image: artwork.edmPreview
                 ? artwork.edmPreview[0]
