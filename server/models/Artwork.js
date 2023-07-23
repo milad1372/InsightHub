@@ -27,6 +27,8 @@ const artworkSchema = new Schema({
   },
   dataProvider: {
     type: [String],
+  },  dcCreator: {
+    type: [String],
   },
   dcDescription: {
     type: [String],
