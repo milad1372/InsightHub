@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, forwardRef, useRef, useImperativeHandle} from "react";
 import Select from "react-select";
 import "../css/common.css";
 import {
@@ -81,10 +81,14 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
     const [selectedMimeType, setSelectedMimeType] = useState([]);
     const [selectedRights, setSelectedRights] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
+    const [artworkData, setArtworkData] = useState([]);
 
     useEffect(() => {
+        setTotalRecords(totalPages);
+        setArtworkData(searchedArtworks);
         return () => saveArtworkIds(savedArtworkIds);
-    });
+    }, [searchedArtworks, totalPages]);
+
 
     const [saveArtwork] = useMutation(SAVE_ARTWORK);
 
@@ -118,7 +122,11 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
+        getPaginatedArtworks(pageNumber).then((data) => {
+            setArtworkData(data);
+        });
     };
+
 
     const reorderArtworkData = (artworkData) => {
         const n = artworkData.length;
@@ -139,11 +147,11 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
             return [];
         }
     }
-    const getPaginatedArtworks = async () => {
+    const getPaginatedArtworks = async (pageNumber) => {
         const response = await getRecords(
             localStorage.getItem('currentQuery'),
             localStorage.getItem('currentFilter'),
-            currentPage
+            pageNumber
         );
         setTotalRecords(response?.totalPages || []);
         return response?.artworkData || [];
@@ -154,15 +162,17 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         window.open(link, "_blank");
     };
 
-    const ListView = () => {
+    const ListView = forwardRef((props, ref) => {
 
-        const [artworkData, setArtworkData] = useState([]);
+        useImperativeHandle(ref, () => ({
 
-        useEffect(() => {
-            getPaginatedArtworks().then((data) => {
-                setArtworkData(data);
-            });
-        }, []);
+            handleDelete() {
+                localStorage.setItem('currentQuery', "");
+                getPaginatedArtworks(currentPage).then((data) => {
+                    setArtworkData(data);
+                });
+            }
+        }));
 
 
         return (
@@ -186,40 +196,37 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                                         <Col xs={8}>
                                             <Card.Body>
                                                 <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
-                                                <Card.Title>{artwork.title}</Card.Title>
+                                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
                                                 <Card.Text>{(artwork.description != null && artwork.description != "") ? artwork.description.slice(0, 238) + "..." : ""}</Card.Text>
                                                 <div className={"data-and-buttons-wrapper d-flex"}>
-                                            <span data-qa="rights statement"
-                                                  className="license-label d-inline-flex align-items-center text-uppercase">
-                                              <FontAwesomeIcon icon={faDriversLicense}/>
+                                            <span className="d-inline-flex align-items-center text-uppercase">
+                                              <FontAwesomeIcon sx={{fontSize: ".875rem"}} icon={faDriversLicense}/>
                                                 <span className="license-label-text">
                                                     {(artwork.license != null && artwork.license != undefined) ? artwork.license.indexOf("rightsstatements") > -1 ? "In Copyright" : "CC BY 4.0" : ""}
                                                </span>
-                                            </span>
+                                               </span>
+
                                                     <span className="d-inline-flex align-items-center text-uppercase">
-                                                <InsertDriveFileOutlinedIcon/>
-                                                        {artwork.type}
-                                            </span>
-                                                    <div data-qa="user buttons" className="user-buttons">
-                                                        <div data-qa="item add button">
-                                                            <button data-qa="add button" aria-label="Add to gallery"
-                                                                    title="Add this item to a gallery." type="button"
-                                                                    className="btn add-button text-uppercase d-inline-flex align-items-center btn-light-flat">
-                                                                <AddCircleIcon/>
-                                                                Save
-                                                            </button>
-                                                        </div>
-                                                        <div data-qa="item like button">
-                                                            <button data-qa="like button" aria-label="Like"
-                                                                    title="Save this item to your Likes."
-                                                                    type="button" aria-pressed="false"
-                                                                    autocomplete="off"
-                                                                    className="btn like-button text-uppercase d-inline-flex align-items-center btn-light-flat">
-                                                                <FavoriteIcon/>
-                                                                Like
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                             <InsertDriveFileOutlinedIcon sx={{fontSize: ".875rem"}}/>
+                                                <span className="license-label-text">
+                                                    {artwork.type}
+                                               </span>
+                                               </span>
+
+
+                                                    <span className="d-inline-flex align-items-center text-uppercase">
+                                             <AddCircleIcon sx={{fontSize: ".875rem"}}/>
+                                                <span className="license-label-text">
+                                                    Save
+                                               </span>
+                                               </span>
+
+                                                    <span className="d-inline-flex align-items-center text-uppercase">
+                                              <FavoriteIcon sx={{fontSize: ".875rem"}}/>
+                                                <span className="license-label-text">
+                                                    Like
+                                               </span>
+                                               </span>
                                                 </div>
                                                 {Auth.loggedIn() && (
                                                     <Button
@@ -266,11 +273,10 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                 </Row>
             </Container>
         );
-    };
+    });
 
 
-    const CardView = () => {
-        const [artworkData, setArtworkData] = useState([]);
+    const CardView = forwardRef((props, ref) => {
         const [hoveredCard, setHoveredCard] = useState(null);
 
         const handleCardHover = (artworkId) => {
@@ -280,11 +286,17 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         const handleCardLeave = () => {
             setHoveredCard(null);
         };
-        useEffect(() => {
-            getPaginatedArtworks().then((data) => {
-                setArtworkData(data);
-            });
-        }, []);
+
+        useImperativeHandle(ref, () => ({
+
+            handleDelete() {
+                localStorage.setItem('currentQuery', "");
+                getPaginatedArtworks().then((data) => {
+                    setArtworkData(data);
+                });
+            }
+
+        }));
 
         return (
             <Container className="card-container-grid mx-0">
@@ -340,7 +352,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                             )}
                             {/* Card body */}
                             <Card.Body>
-                                <Card.Title>{artwork.title}</Card.Title>
+                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
                                 <Card.Text>{artwork.dcCreator}</Card.Text>
                                 <Card.Text>{artwork.dataProvider}</Card.Text>
                                 {/* rest of the code */}
@@ -349,12 +361,11 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                     ))}
             </Container>
         );
-    };
+    });
 
 
-    const MosaicView = () => {
+    const MosaicView = forwardRef((props, ref) => {
 
-        const [artworkData, setArtworkData] = useState([]);
         const [hoveredCard, setHoveredCard] = useState(null);
 
         const handleCardHover = (artworkId) => {
@@ -364,11 +375,18 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         const handleCardLeave = () => {
             setHoveredCard(null);
         };
-        useEffect(() => {
-            getPaginatedArtworks().then((data) => {
-                setArtworkData(data);
-            });
-        }, []);
+
+        useImperativeHandle(ref, () => ({
+
+            handleDelete() {
+                localStorage.setItem('currentQuery', "");
+                getPaginatedArtworks().then((data) => {
+                    setArtworkData(data);
+                });
+            }
+
+        }));
+
 
         return (
             <Container className="card-container-grid mx-0">
@@ -431,7 +449,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                     ))}
             </Container>
         );
-    };
+    });
 
 
     const Filters = () => (
@@ -563,14 +581,14 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
 
             if (e.key === 'Enter') {
                 const page = e.target.value ? Number(e.target.value) : 0;
-                if (page >= 1 && page <= totalPages) {
+                if (page >= 1 && page <= (totalRecords/ 24)) {
                     handlePageChange(page);
                 }
             }
         };
 
         const nextPage = () => {
-            if (currentPage < totalPages) {
+            if (currentPage < (totalRecords/ 24)) {
                 handlePageChange(currentPage + 1);
             }
         };
@@ -594,13 +612,13 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                     type="number"
                     className="form-control mx-3"
                     min={1}
-                    max={totalPages}
+                    max={totalRecords/24}
                     onKeyDown={handleKeyPress}
                     defaultValue={currentPage}
                     style={{width: '100px', textAlign: "center"}}
                 />
 
-                <span className="mx-3">OF {Math.floor(totalPages / 24)}</span>
+                <span className="mx-3">OF {Math.floor(totalRecords / 24 < 1 ? 1 : totalRecords / 24)}</span>
                 <button className="btn-page-nav mx-3" onClick={nextPage}>
                     NEXT&nbsp;
                     <FontAwesomeIcon icon={faArrowRight}/>
@@ -610,65 +628,69 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         );
     };
 
-    const handleDelete = () => {
-    }
+    const childRef = useRef();
 
     return (
         <>
-            <Container fluid className="search-container mx-0 px-8">
-                <Row>
-                    <Col xs={10}>
-                        <Row>
-                            <Col xs={10}>
-                                <h5 className="padtop">
-                                    {(`${totalRecords.toLocaleString()} RESULTS FOR`)}
-
-                                    <StyledChip
-                                        style={{
-                                            backgroundColor: '#daeaf8',
-                                            color: '#4d4d4d',
-                                            margin: '6px'
-                                        }}
-                                        label={localStorage.getItem('currentQuery')}
-                                        onDelete={() => handleDelete()}
-                                    />
-                                </h5>
-                            </Col>
-                            <Col xs={2}>
-                                <div className="button-group">
-                                    <div className="icon-group">
-                                        <FormatListBulletedIcon
-                                            className={view === 'list' ? 'selected-icon' : 'icon'}
-                                            onClick={() => setView('list')}
-                                        />
-                                        <GridViewIcon
-                                            className={view === 'grid' ? 'selected-icon' : 'icon'}
-                                            onClick={() => setView('grid')}
-                                        />
-                                        <AutoAwesomeMosaicOutlined
-                                            className={view === 'mosaic' ? 'selected-icon' : 'icon'}
-                                            onClick={() => setView('mosaic')}
-                                        />
+            {(localStorage.getItem('firstRun') != null && localStorage.getItem('firstRun') != "true") ?
+                <Container fluid className="search-container mx-0 px-8">
+                    <Row>
+                        <Col xs={10}>
+                            <Row>
+                                <Col xs={10}>
+                                    <h5 className="padtop">
+                                        {(`${totalRecords.toLocaleString()} RESULTS `)}
+                                        {localStorage.getItem('currentQuery') ? <>
+                                            <span>FOR</span>
+                                            <StyledChip
+                                                style={{
+                                                    backgroundColor: '#daeaf8',
+                                                    color: '#4d4d4d',
+                                                    margin: '6px'
+                                                }}
+                                                label={localStorage.getItem('currentQuery')}
+                                                onDelete={() => childRef.current.handleDelete()}
+                                            /></> : <div></div>
+                                        }
+                                    </h5>
+                                </Col>
+                                <Col xs={2}>
+                                    <div className="button-group">
+                                        <div className="icon-group">
+                                            <FormatListBulletedIcon
+                                                className={view === 'list' ? 'selected-icon' : 'icon'}
+                                                onClick={() => setView('list')}
+                                            />
+                                            <GridViewIcon
+                                                className={view === 'grid' ? 'selected-icon' : 'icon'}
+                                                onClick={() => setView('grid')}
+                                            />
+                                            <AutoAwesomeMosaicOutlined
+                                                className={view === 'mosaic' ? 'selected-icon' : 'icon'}
+                                                onClick={() => setView('mosaic')}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </Col>
+                                </Col>
 
-                        </Row>
-                        <div className={"card-container"}>
-                            {view === "grid" ? <CardView/> : view === "list" ? <ListView/> : <MosaicView/>}
-                        </div>
-                        {totalPages > 1 &&
-                        <div className="d-flex justify-content-center">
-                            <Pagination/>
-                        </div>
+                            </Row>
+                            <div className={"card-container"}>
+                                {view === "grid" ? <CardView ref={childRef}/> : view === "list" ?
+                                    <ListView ref={childRef}/> : <MosaicView ref={childRef}/>}
+                            </div>
+                            {totalRecords > 1 &&
+                            <div className="d-flex justify-content-center">
+                                <Pagination/>
+                            </div>
 
-                        }
-                    </Col>
-                    <Col xs={2}>
-                        <Filters/>
-                    </Col>
-                </Row>
-            </Container>
+                            }
+                        </Col>
+                        <Col xs={2}>
+                            <Filters/>
+                        </Col>
+                    </Row>
+                </Container>
+                : <></>}
         </>
     );
 };
