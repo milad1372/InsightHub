@@ -37,11 +37,14 @@ const App = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({}); // Add this state to hold the current filters
+    const [isLoading, setIsLoading] = useState(false); // Add this state to hold the current filters
 
-    const handleSharedVariableChange = (totalPages, artworkData) => {
+    const handleSharedVariableChange = (isLoading, totalPages, artworkData) => {
+        console.log("nav isLoading: ", isLoading);
         setTotalPages(totalPages);
         setSearchedArtworks(artworkData);
         setCurrentPage(1);
+        setIsLoading(isLoading);
     };
 
     return (
@@ -52,6 +55,7 @@ const App = () => {
                         searchedArtworks={searchedArtworks}
                         currentPage={currentPage}
                         totalPages={totalPages}
+                        isLoading={isLoading}
                         onSharedVariableChange={handleSharedVariableChange}
                         filters={filters} // Pass the filters to Navbar
                         onFilterChange={setFilters} // Pass a function to update the filters
@@ -67,6 +71,7 @@ const App = () => {
                                             searchedArtworks={searchedArtworks}
                                             currentPage={currentPage}
                                             totalPages={totalPages}
+                                            isLoading={isLoading}
                                             filters={filters} // Pass the filters to SearchArtworks
                                             onFilterChange={setFilters} // Pass a function to update the filters
                                         />

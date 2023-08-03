@@ -363,3 +363,6 @@ data-and-buttons-wrapper [class^=icon-] {
 }
 
 
+.progressbarBox{
+  height: 500px;
+}

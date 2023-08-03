@@ -62,7 +62,7 @@ const StyledChip = withStyles({
     }
 })(Chip);
 
-const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange}) => {
+const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFilterChange}) => {
     const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
     const [view, setView] = useState("list");
     const [currentPage, setCurrentPage] = useState(1);
@@ -82,12 +82,21 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
     const [selectedRights, setSelectedRights] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [artworkData, setArtworkData] = useState([]);
+    const [showProgressbar, setShowProgressbar] = useState(false);
 
     useEffect(() => {
+        setShowProgressbar(isLoading);
+       console.log("isLoading: ", isLoading);
+        setCurrentPage(1);
         setTotalRecords(totalPages);
         setArtworkData(searchedArtworks);
-        return () => saveArtworkIds(savedArtworkIds);
-    }, [searchedArtworks, totalPages]);
+
+        // Cleanup function, executed when component unmounts or when dependency array changes
+        return () => {
+            // Save artwork ids to local storage when the component unmounts
+            saveArtworkIds(savedArtworkIds);
+        };
+    }, [isLoading, searchedArtworks, totalPages]);
 
 
     const [saveArtwork] = useMutation(SAVE_ARTWORK);
@@ -121,9 +130,11 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
     };
 
     const handlePageChange = (pageNumber) => {
+        setShowProgressbar(true);
         setCurrentPage(pageNumber);
         getPaginatedArtworks(pageNumber).then((data) => {
             setArtworkData(data);
+            setShowProgressbar(false);
         });
     };
 
@@ -147,15 +158,18 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
             return [];
         }
     }
+
     const getPaginatedArtworks = async (pageNumber) => {
         const response = await getRecords(
             localStorage.getItem('currentQuery'),
             localStorage.getItem('currentFilter'),
             pageNumber
         );
-        setTotalRecords(response?.totalPages || []);
+        setTotalRecords(response?.totalPages || 0);
+        setArtworkData(response?.artworkData || []);
         return response?.artworkData || [];
     };
+
 
     const handleCardClick = (id) => {
         let link = 'https://www.europeana.eu/en/item' + id;
@@ -165,30 +179,38 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
     const ListView = forwardRef((props, ref) => {
 
         useImperativeHandle(ref, () => ({
-
             handleDelete() {
-                localStorage.setItem('currentQuery', "");
+                setArtworkData([]);
+                localStorage.setItem('currentQuery', '');
+                setShowProgressbar(true); // Show progress bar before the API call
                 getPaginatedArtworks(currentPage).then((data) => {
+                    setShowProgressbar(false); // Hide progress bar after the API call is complete
                     setArtworkData(data);
                 });
-            }
+            },
         }));
 
 
         return (
             <Container>
                 <Row>
-                    {artworkData.length == 0 ?
-                        <CircularProgress
-                            size={20}
-                            style={{
-                                color: 'black',
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                marginTop: `${-80 / 2}px`,
-                                marginLeft: `${-80 / 2}px`
-                            }}/>
+                    {showProgressbar ?
+                        <div className={'progressbarBox'}>
+                            <CircularProgress
+                                size={20}
+                                style={{
+                                    color: 'black',
+                                    width: 20,
+                                    height: 20,
+                                    position: 'absolute',
+                                    top: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+
+                                    margin: 'auto'
+                                }}/>
+                        </div>
                         : artworkData.map((artwork) => (
                             <Col xs={12} md={6}>
                                 <Card className="artwork-card">
@@ -288,29 +310,36 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         };
 
         useImperativeHandle(ref, () => ({
-
             handleDelete() {
-                localStorage.setItem('currentQuery', "");
-                getPaginatedArtworks().then((data) => {
+                setArtworkData([]);
+                localStorage.setItem('currentQuery', '');
+                setShowProgressbar(true); // Show progress bar before the API call
+                getPaginatedArtworks(currentPage).then((data) => {
+                    setShowProgressbar(false); // Hide progress bar after the API call is complete
                     setArtworkData(data);
                 });
-            }
-
+            },
         }));
 
         return (
             <Container className="card-container-grid mx-0">
-                {artworkData.length == 0 ?
-                    <CircularProgress
-                        size={20}
-                        style={{
-                            color: 'black',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: `${-80 / 2}px`,
-                            marginLeft: `${-80 / 2}px`
-                        }}/>
+                {showProgressbar ?
+                    <div className={'progressbarBox'}>
+                        <CircularProgress
+                            size={20}
+                            style={{
+                                color: 'black',
+                                width: 20,
+                                height: 20,
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+
+                                margin: 'auto'
+                            }}/>
+                    </div>
                     : artworkData.map((artwork) => (
                         <Card key={artwork.artworkId} className="artwork-card-grid"
                               onClick={() => handleCardClick(artwork.artworkId)}
@@ -377,30 +406,37 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
         };
 
         useImperativeHandle(ref, () => ({
-
             handleDelete() {
-                localStorage.setItem('currentQuery', "");
-                getPaginatedArtworks().then((data) => {
+                setArtworkData([]);
+                localStorage.setItem('currentQuery', '');
+                setShowProgressbar(true); // Show progress bar before the API call
+                getPaginatedArtworks(currentPage).then((data) => {
+                    setShowProgressbar(false); // Hide progress bar after the API call is complete
                     setArtworkData(data);
                 });
-            }
-
+            },
         }));
 
 
         return (
             <Container className="card-container-grid mx-0">
-                {artworkData.length == 0 ?
-                    <CircularProgress
-                        size={20}
-                        style={{
-                            color: 'black',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: `${-80 / 2}px`,
-                            marginLeft: `${-80 / 2}px`
-                        }}/>
+                {showProgressbar ?
+                    <div className={'progressbarBox'}>
+                        <CircularProgress
+                            size={20}
+                            style={{
+                                color: 'black',
+                                width: 20,
+                                height: 20,
+                                position: 'absolute',
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+
+                                margin: 'auto'
+                            }}/>
+                    </div>
                     : artworkData.map((artwork) => (
                         <Card
                             key={artwork.artworkId}
@@ -581,14 +617,14 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
 
             if (e.key === 'Enter') {
                 const page = e.target.value ? Number(e.target.value) : 0;
-                if (page >= 1 && page <= (totalRecords/ 24)) {
+                if (page >= 1 && page <= (totalRecords / 24)) {
                     handlePageChange(page);
                 }
             }
         };
 
         const nextPage = () => {
-            if (currentPage < (totalRecords/ 24)) {
+            if (currentPage < (totalRecords / 24)) {
                 handlePageChange(currentPage + 1);
             }
         };
@@ -612,7 +648,7 @@ const SearchArtworks = ({totalPages, searchedArtworks, filters, onFilterChange})
                     type="number"
                     className="form-control mx-3"
                     min={1}
-                    max={totalRecords/24}
+                    max={totalRecords / 24}
                     onKeyDown={handleKeyPress}
                     defaultValue={currentPage}
                     style={{width: '100px', textAlign: "center"}}

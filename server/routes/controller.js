@@ -23,6 +23,8 @@ app.use(function (req, res, next) {
 recordRoutes.route("/recordList").post(function (request, response) {
     console.log('get record list operation ____________________________________________');
     let searchInput = String(request.body.searchInput).trim().toLowerCase();
+    (searchInput==null|| searchInput==""|| searchInput==undefined)?searchInput=null:searchInput;
+
     let filterQuery = String(request.body.filterQuery).trim();
     let pageNumber = request.body.pageNumber;
 

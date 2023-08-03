@@ -24,9 +24,9 @@ import Typography from "@mui/material/Typography";
 import ClearIcon from '@mui/icons-material/Clear';
 
 const useStyles = makeStyles((theme) => ({
-        noBorderNavbar: {
-            border: 'none', // Set the border property to 'none' to remove the border
-        },
+    noBorderNavbar: {
+        border: 'none', // Set the border property to 'none' to remove the border
+    },
     hoverablePaper: {
         marginTop: "55px",
         '&:hover': {
@@ -48,118 +48,117 @@ const useStyles = makeStyles((theme) => ({
 
 
 // const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
-const AppNavbar = ({totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange}) => {
+const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange}) => {
         // set modal display state
         const [showModal, setShowModal] = useState(false);
         const [showSearchBar, setShowSearchBar] = useState(false);
         const [searchInput, setSearchInput] = useState("");
 
 
-
         const SearchBar = () => {
-            const [showSearchMessage, setShowSearchMessage] = useState(false);
-            const classes = useStyles();
+                const [showSearchMessage, setShowSearchMessage] = useState(false);
+                const classes = useStyles();
 
                 const handleFocus = (event) => {
-                    console.log("entered!")
                     setShowSearchMessage(true);
                 };
 
-            const handleBlur = () => {
-                setTimeout(() => {
-                    if (
-                        document.getElementById('search-suggestions') != null &&
-                        document.activeElement !== document.getElementById('search-suggestions')
-                    ) {
-                        setShowSearchMessage(false);
+                const handleBlur = () => {
+                    setTimeout(() => {
+                        if (
+                            document.getElementById('search-suggestions') != null &&
+                            document.activeElement !== document.getElementById('search-suggestions')
+                        ) {
+                            setShowSearchMessage(false);
+                        }
+                    }, 200); // Delayed the onBlur event by 200 milliseconds
+                };
+
+                const handleFormSubmit = async (event) => {
+
+                    event.preventDefault();
+                    onSharedVariableChange(true, 0, []);
+
+                    localStorage.setItem('firstRun', false);
+                    console.log(localStorage.getItem('firstRun'))
+                    try {
+                        const filterQuery = Object.entries(filters)
+                            .map(([key, value]) => `${key}=${value}`)
+                            .join('&');
+                        console.log("navbar");
+                        const response = await getRecords(searchInput, filterQuery, 1);
+                        onSharedVariableChange(false, response.totalPages, response.artworkData);
+                    } catch (err) {
+                        console.error(err);
                     }
-                }, 200); // Delayed the onBlur event by 200 milliseconds
-            };
+                };
 
-            const handleFormSubmit = async (event) => {
+                const handleQueryChange = (e) => {
+                    let value = e.target.value;
+                    setSearchInput(value);
+                };
 
-                event.preventDefault();
-
-                localStorage.setItem('firstRun', false);
-                console.log(localStorage.getItem('firstRun'))
-                try {
-                    const filterQuery = Object.entries(filters)
-                        .map(([key, value]) => `${key}=${value}`)
-                        .join('&');
-                    console.log("navbar");
-                    const response = await getRecords(searchInput, filterQuery, 1);
-                    onSharedVariableChange(response.totalPages, response.artworkData);
-                } catch (err) {
-                    console.error(err);
-                }
-            };
-
-            const handleQueryChange = (e) => {
-                let value = e.target.value;
-                setSearchInput(value);
-            };
-
-            const clearSearchInput = () => {
-                setSearchInput('');
-            };
+                const clearSearchInput = () => {
+                    setSearchInput('');
+                };
 
                 const searchMessage = searchInput ? `Search for ${searchInput}` : 'Search for everything';
 
                 return (
                     <div className={"wrapper"}>
                         <div>
-                        <Navbar expand="lg" className={"m-0 header-navbar"}>
-                            <Grid container>
-                                <Grid xs={12} item={true}>
-                                    <div >
-                                        <form onSubmit={handleFormSubmit} className="ml-auto">
-                                            <TextField
-                                                placeholder="Search 50+ million items"
-                                                variant="outlined"
-                                                fullWidth
-                                                autoFocus
-                                                name="query"
-                                                id="query"
-                                                value={searchInput}
-                                                onChange={handleQueryChange}
-                                                onFocus={handleFocus}
-                                                onBlur={handleBlur}
-                                                InputProps={{
-                                                    startAdornment: (
-                                                        <IconButton onClick={() => setShowSearchBar(false)}>
-                                                            <ArrowBackIcon className="arrow-back-icon"/>
-                                                        </IconButton>
-                                                    ),
-                                                    endAdornment: (
-                                                    searchInput && (
-                                                    <IconButton onClick={clearSearchInput}>
-                                                    <ClearIcon />
-                                                    </IconButton>
-                                                    )
-                                                    ),
-                                                }}
-                                            />
-                                        </form>
-                                    </div>
+                            <Navbar expand="lg" className={"m-0 header-navbar"}>
+                                <Grid container>
+                                    <Grid xs={12} item={true}>
+                                        <div>
+                                            <form onSubmit={handleFormSubmit} className="ml-auto">
+                                                <TextField
+                                                    placeholder="Search 50+ million items"
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    autoFocus
+                                                    name="query"
+                                                    id="query"
+                                                    value={searchInput}
+                                                    onChange={handleQueryChange}
+                                                    onFocus={handleFocus}
+                                                    onBlur={handleBlur}
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <IconButton onClick={() => setShowSearchBar(false)}>
+                                                                <ArrowBackIcon className="arrow-back-icon"/>
+                                                            </IconButton>
+                                                        ),
+                                                        endAdornment: (
+                                                            searchInput && (
+                                                                <IconButton onClick={clearSearchInput}>
+                                                                    <ClearIcon/>
+                                                                </IconButton>
+                                                            )
+                                                        ),
+                                                    }}
+                                                />
+                                            </form>
+                                        </div>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
 
-                        </Navbar>
-                        {showSearchMessage && (
-                            <Paper className={`${classes.hoverablePaper} header-navbar`}>
-                                <MenuList id={'search-suggestions'}>
-                                    <MenuItem className={classes.hoverableMenuItem} onClick={handleFormSubmit}>
-                                        <ListItemIcon>
-                                            <SearchIcon fontSize="small" />
-                                        </ListItemIcon>
-                                        <Typography variant="inherit" id="search-suggestions">
-                                            {searchMessage}
-                                        </Typography>
-                                    </MenuItem>
-                                </MenuList>
-                            </Paper>
+                            </Navbar>
+                            {showSearchMessage && (
+                                <Paper className={`${classes.hoverablePaper} header-navbar`}>
+                                    <MenuList id={'search-suggestions'}>
+                                        <MenuItem className={classes.hoverableMenuItem} onClick={handleFormSubmit}>
+                                            <ListItemIcon>
+                                                <SearchIcon fontSize="small"/>
+                                            </ListItemIcon>
+                                            <Typography variant="inherit" id="search-suggestions">
+                                                {searchMessage}
+                                            </Typography>
+                                        </MenuItem>
+                                    </MenuList>
+                                </Paper>
                             )}
-                    </div>
+                        </div>
                     </div>
                 );
             }
