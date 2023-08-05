@@ -48,3 +48,5 @@ npm run develop
 
 
 signup removed
+
+ git push -f origin master

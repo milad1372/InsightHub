@@ -278,6 +278,7 @@ data-and-buttons-wrapper [class^=icon-] {
 
 .card-container-grid {
   column-count: 6;
+  /*display: 'flex';*/
   column-gap: 20px !important; /* Adjust the gap between cards as needed */
 }
 

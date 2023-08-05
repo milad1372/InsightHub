@@ -171,10 +171,33 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     };
 
 
-    const handleCardClick = (id) => {
-        let link = 'https://www.europeana.eu/en/item' + id;
+    const handleCardClick = (artworkId, event) => {
+        const target = event.target;
+        let currentElement = target;
+        let isInsideDataAndButtonsWrapper = false;
+        while (currentElement) {
+            if (currentElement.classList.contains('data-and-buttons-wrapper')|| currentElement.classList.contains('MuiSvgIcon-root')) {
+                isInsideDataAndButtonsWrapper = true;
+                break;
+            }
+            currentElement = currentElement.parentElement;
+        }
+        if (isInsideDataAndButtonsWrapper) {
+            return;
+        }
+
+        let link = 'https://www.europeana.eu/en/item' + artworkId;
         window.open(link, "_blank");
     };
+
+    const handleFavoriteClick = (artworkId) => {
+        setArtworkData((prevArtworkData) =>
+            prevArtworkData.map((artwork) =>
+                artwork.artworkId === artworkId ? { ...artwork, isFavorited: !artwork.isFavorited } : artwork
+            )
+        );
+    };
+
 
     const ListView = forwardRef((props, ref) => {
 
@@ -214,7 +237,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                         : artworkData.map((artwork) => (
                             <Col xs={12} md={6}>
                                 <Card className="artwork-card">
-                                    <Row onClick={() => handleCardClick(artwork.artworkId)}>
+                                    <Row onClick={(event) => handleCardClick(artwork.artworkId, event)}>
                                         <Col xs={8}>
                                             <Card.Body>
                                                 <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
@@ -242,10 +265,9 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                                     Save
                                                </span>
                                                </span>
-
-                                                    <span className="d-inline-flex align-items-center text-uppercase">
-                                              <FavoriteIcon sx={{fontSize: ".875rem"}}/>
-                                                <span className="license-label-text">
+                                                    <span className="d-inline-flex align-items-center text-uppercase"   onClick={() => handleFavoriteClick(artwork.artworkId)}>
+                                              <FavoriteIcon className="Like-label" sx={{fontSize: ".875rem", color: artwork.isFavorited ? 'red' : 'black' }}/>
+                                                <span className="Like-label-text">
                                                     Like
                                                </span>
                                                </span>
@@ -342,12 +364,12 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     </div>
                     : artworkData.map((artwork) => (
                         <Card key={artwork.artworkId} className="artwork-card-grid"
-                              onClick={() => handleCardClick(artwork.artworkId)}
+                              onClick={(event) => handleCardClick(artwork.artworkId, event)}
                               onMouseEnter={() => handleCardHover(artwork.artworkId)}
                               onMouseLeave={handleCardLeave}>
                             {/* Card image */}
                             {artwork.image && artwork.image !== "No image available" ? (
-                                <div>
+                                <div className={'temp'}>
                                     <Card.Img className="card-image-grid"
                                               src={artwork.image}
                                               alt={`The image for ${artwork.title}`}
@@ -357,7 +379,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
@@ -373,14 +395,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
                                 </div>
                             )}
                             {/* Card body */}
-                            <Card.Body>
+                            <Card.Body >
                                 <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
                                 <Card.Text>{artwork.dcCreator}</Card.Text>
                                 <Card.Text>{artwork.dataProvider}</Card.Text>
@@ -443,7 +465,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                             className="artwork-card-grid"
                             onMouseEnter={() => handleCardHover(artwork.artworkId)}
                             onMouseLeave={handleCardLeave}
-                            onClick={() => handleCardClick(artwork.artworkId)}
+                            onClick={(event) => handleCardClick(artwork.artworkId, event)}
                         >
                             {/* Card image */}
                             {artwork.image && artwork.image !== "No image available" ? (
@@ -458,7 +480,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
@@ -475,7 +497,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
+                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
@@ -682,7 +704,8 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                                 style={{
                                                     backgroundColor: '#daeaf8',
                                                     color: '#4d4d4d',
-                                                    margin: '6px'
+                                                    margin: '6px',
+                                                    borderRadius: '2.25rem'
                                                 }}
                                                 label={localStorage.getItem('currentQuery')}
                                                 onDelete={() => childRef.current.handleDelete()}
