@@ -86,7 +86,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
     useEffect(() => {
         setShowProgressbar(isLoading);
-       console.log("isLoading: ", isLoading);
+        console.log("isLoading: ", isLoading);
         setCurrentPage(1);
         setTotalRecords(totalPages);
         setArtworkData(searchedArtworks);
@@ -176,7 +176,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
         let currentElement = target;
         let isInsideDataAndButtonsWrapper = false;
         while (currentElement) {
-            if (currentElement.classList.contains('data-and-buttons-wrapper')|| currentElement.classList.contains('MuiSvgIcon-root')) {
+            if (currentElement.classList.contains('data-and-buttons-wrapper') || currentElement.classList.contains('MuiSvgIcon-root')) {
                 isInsideDataAndButtonsWrapper = true;
                 break;
             }
@@ -191,9 +191,10 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     };
 
     const handleFavoriteClick = (artworkId) => {
+        console.log(artworkId)
         setArtworkData((prevArtworkData) =>
             prevArtworkData.map((artwork) =>
-                artwork.artworkId === artworkId ? { ...artwork, isFavorited: !artwork.isFavorited } : artwork
+                artwork.artworkId === artworkId ? {...artwork, isFavorited: !artwork.isFavorited} : artwork
             )
         );
     };
@@ -265,11 +266,25 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                                     Save
                                                </span>
                                                </span>
-                                                    <span className="d-inline-flex align-items-center text-uppercase"   onClick={() => handleFavoriteClick(artwork.artworkId)}>
-                                              <FavoriteIcon className="Like-label" sx={{fontSize: ".875rem", color: artwork.isFavorited ? 'red' : 'black' }}/>
-                                                <span className="Like-label-text">
-                                                    Like
-                                               </span>
+                                                    <span className="d-inline-flex align-items-center text-uppercase"
+                                                          onClick={() => handleFavoriteClick(artwork.artworkId)}>
+                                             {artwork.isFavorited ? (
+                                                 <>
+                                                     <FavoriteIcon className="Like-label"
+                                                                   sx={{fontSize: ".875rem", color: 'red'}}/>
+                                                     <span className="Like-label-text" style={{color: 'red'}}>
+                                                  Liked
+                                                    </span>
+                                                 </>
+                                             ) : (
+                                                 <>
+                                                     <FavoriteIcon className="Like-label"
+                                                                   sx={{fontSize: ".875rem", color: 'black'}}/>
+                                                     <span className="Like-label-text">
+                                                      Like
+                                                     </span>
+                                                 </>
+                                             )}
                                                </span>
                                                 </div>
                                                 {Auth.loggedIn() && (
@@ -379,7 +394,13 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                                fontSize: "10px",
+                                                height: "36px",
+                                                width: "36px",
+                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
+                                            }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
@@ -395,14 +416,20 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                                fontSize: "10px",
+                                                height: "36px",
+                                                width: "36px",
+                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
+                                            }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
                                 </div>
                             )}
                             {/* Card body */}
-                            <Card.Body >
+                            <Card.Body>
                                 <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
                                 <Card.Text>{artwork.dcCreator}</Card.Text>
                                 <Card.Text>{artwork.dataProvider}</Card.Text>
@@ -480,7 +507,13 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                                fontSize: "10px",
+                                                height: "36px",
+                                                width: "36px",
+                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
+                                            }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}
@@ -497,7 +530,13 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon  onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{fontSize: "10px", height: "36px", width: "36px", color: artwork.isFavorited ? 'red' : 'black' }}
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                                fontSize: "10px",
+                                                height: "36px",
+                                                width: "36px",
+                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
+                                            }}
                                                           className="hover-icon"/>
                                         </div>
                                     )}

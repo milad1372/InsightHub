@@ -14,8 +14,6 @@ import LoginForm from "./LoginForm";
 import SignUpForm from "./SignupForm";
 import getRecords from "../api/getRecordsApi";
 import MenuItem from "@material-ui/core/MenuItem";
-import Box from "@material-ui/core/Box";
-import Menu from "@material-ui/core/Menu";
 import Paper from "@mui/material/Paper";
 import MenuList from "@mui/material/MenuList";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -85,7 +83,6 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                         const filterQuery = Object.entries(filters)
                             .map(([key, value]) => `${key}=${value}`)
                             .join('&');
-                        console.log("navbar");
                         const response = await getRecords(searchInput, filterQuery, 1);
                         onSharedVariableChange(false, response.totalPages, response.artworkData);
                     } catch (err) {
@@ -191,7 +188,7 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                                     </Nav.Link>
                                 </>
                             ) : (
-                                <Nav.Link onClick={() => setShowModal(true)}>Login</Nav.Link>
+                                <Nav.Link href={'/LoginForm'}>Login</Nav.Link>
                             )}
                         </Nav>
                     </Navbar.Collapse>
@@ -217,9 +214,9 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                         <Modal.Header closeButton>
                             <Modal.Title id="signup-modal">
                                 <Nav variant="pills">
-                                    <Nav.Item>
-                                        <Nav.Link eventKey="login">Login</Nav.Link>
-                                    </Nav.Item>
+                                    {/*<Nav.Item>*/}
+                                    {/*    <Nav.Link eventKey="login">Login</Nav.Link>*/}
+                                    {/*</Nav.Item>*/}
                                     {/*<Nav.Item>*/}
                                     {/*  <Nav.Link eventKey="signup">Sign Up</Nav.Link>*/}
                                     {/*</Nav.Item>*/}

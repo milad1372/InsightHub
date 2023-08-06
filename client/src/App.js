@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {BrowserRouter as Router, Switch, Route} from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, useLocation } from 'react-router-dom';
 import SearchArtworks from "./pages/SearchArtworks";
 import SavedArtworks from "./pages/SavedArtworks";
 import Navbar from "./components/Navbar";
@@ -12,6 +12,7 @@ import {
 import {setContext} from "@apollo/client/link/context";
 import {getSavedArtworkIds} from "./utils/localStorage";
 import {Container, Row} from "react-bootstrap";
+import LoginForm from "./components/LoginForm";
 
 const httpLink = createHttpLink({
     uri: "/graphql",
@@ -32,6 +33,15 @@ const client = new ApolloClient({
     cache: new InMemoryCache(),
 });
 
+const NavbarWrapper = ({ children }) => {
+    const location = useLocation();
+
+    // Hide the Navbar on the "/LoginForm" route
+    const hideNavbar = location.pathname === '/LoginForm';
+
+    return <>{hideNavbar ? null : children}</>;
+};
+
 const App = () => {
     const [searchedArtworks, setSearchedArtworks] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -50,7 +60,7 @@ const App = () => {
     return (
         <ApolloProvider client={client}>
             <Router>
-                <>
+                <NavbarWrapper>
                     <Navbar
                         searchedArtworks={searchedArtworks}
                         currentPage={currentPage}
@@ -60,28 +70,29 @@ const App = () => {
                         filters={filters} // Pass the filters to Navbar
                         onFilterChange={setFilters} // Pass a function to update the filters
                     />
-                    <Switch>
-                        <Route
-                            exact
-                            path="/"
-                            render={(props) => (
+                </NavbarWrapper>
 
-                                        <SearchArtworks
-                                            {...props}
-                                            searchedArtworks={searchedArtworks}
-                                            currentPage={currentPage}
-                                            totalPages={totalPages}
-                                            isLoading={isLoading}
-                                            filters={filters} // Pass the filters to SearchArtworks
-                                            onFilterChange={setFilters} // Pass a function to update the filters
-                                        />
+                <Switch>
+                    <Route
+                        exact
+                        path="/"
+                        render={(props) => (
 
-                            )}
-                        />
-                        <Route exact path="/saved" component={SavedArtworks}/>
-                        <Route render={() => <h1 className="display-2">Wrong page!</h1>}/>
-                    </Switch>
-                </>
+                            <SearchArtworks
+                                {...props}
+                                searchedArtworks={searchedArtworks}
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                isLoading={isLoading}
+                                filters={filters} // Pass the filters to SearchArtworks
+                                onFilterChange={setFilters} // Pass a function to update the filters
+                            />
+
+                        )}
+                    />
+                    <Route exact path="/saved" component={SavedArtworks} />
+                    <Route exact path="/LoginForm" component={LoginForm} />
+                </Switch>
             </Router>
         </ApolloProvider>
     );
