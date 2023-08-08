@@ -409,7 +409,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                                 <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
                                                 <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
                                                 <Card.Text>{(artwork.description != null && artwork.description != "") ? artwork.description.slice(0, 238) + "..." : ""}</Card.Text>
-                                                <div className={"data-and-buttons-wrapper d-flex"}>
+                                                <div className={"artwork-card-description data-and-buttons-wrapper d-flex"}>
                                             <span className="d-inline-flex align-items-center text-uppercase">
                                                 <WorkspacePremiumIcon sx={{fontSize: ".875rem"}} />
                                                 <span className="license-label-text buttons-wrapper-icon">
@@ -1099,9 +1099,9 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
             {(localStorage.getItem('firstRun') != null && localStorage.getItem('firstRun') != "true") ?
                 <Container fluid className="search-container mx-0 px-8">
                     <Row>
-                        <Col xs={10}>
+                        <Col xs={12} sm={10}>
                             <Row>
-                                <Col xs={10}>
+                                <Col xs={12} sm={10}>
                                     <h5 className="padtop context-label">
                                         {totalRecords>5?(`${totalRecords.toLocaleString()} RESULTS `):""}
                                         {localStorage.getItem('currentQuery') ? <>
@@ -1119,7 +1119,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         }
                                     </h5>
                                 </Col>
-                                <Col xs={2}>
+                                <Col xs={12} sm={2}>
                                     <div className="button-group">
                                         <div className="icon-group">
                                             <FormatListBulletedIcon
@@ -1282,7 +1282,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
                             }
                         </Col>
-                        <Col xs={2}>
+                        <Col xs={12} sm={2} className="col-filters">
                             <Filters/>
                         </Col>
                     </Row>
