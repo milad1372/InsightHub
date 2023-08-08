@@ -173,7 +173,7 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="navbar"/>
                     <Navbar.Collapse id="navbar">
-                        <Nav className="ml-auto">
+                        <Nav className="ml-auto nav-link">
                             {/* <Nav.Link as={Link} to="/">
               <FontAwesomeIcon icon={faHome} /> Search For Books
             </Nav.Link> */}

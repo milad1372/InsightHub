@@ -363,7 +363,92 @@ data-and-buttons-wrapper [class^=icon-] {
   margin-bottom: 50px;
 }
 
+.paddingTop{
+  padding-top: 1em;
+}
 
 .progressbarBox{
   height: 500px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.filters-header {
+  padding: 10px;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.border-top {
+  border-top: 1px solid #dee2e6;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.label{
+    color: #4d4d4d;
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+.strong{
+  display: inline-block;
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.filters-title{
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1;
+  margin: 0.75rem 1rem 0.75rem 0;
+}
+
+.tooltipStyle{
+  font-size: 1rem;
+  padding-left: 1px;
+}
+
+.context-label {
+  font-size: .875rem;
+  line-height: 3;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.buttons-wrapper{
+  color: #4d4d4d;
+  line-height: inherit;
+  margin-right: 1rem;
+  padding: 0;
+}
+
+.buttons-wrapper-icon{
+  padding-left: 0.2rem;
+}
+
+.buttons-wrapper:hover{
+  color: #0a72cc;
 }
