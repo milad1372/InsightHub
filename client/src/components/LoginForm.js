@@ -34,16 +34,18 @@ const LoginForm = () => {
             event.stopPropagation();
         }
 
+        localStorage.setItem('loggedInUser',userFormData.email);
+        window.location.href = '/';
         // use loginUser function
-        try {
-            const {data} = await loginUser({
-                variables: {...userFormData},
-            });
-
-            Auth.login(data.login.token);
-        } catch (e) {
-            console.error(e);
-        }
+        // try {
+        //     const {data} = await loginUser({
+        //         variables: {...userFormData},
+        //     });
+        //
+        //     Auth.login(data.login.token);
+        // } catch (e) {
+        //     console.error(e);
+        // }
 
         setUserFormData({
             username: "",

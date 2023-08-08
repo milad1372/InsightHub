@@ -33,6 +33,22 @@ import {withStyles} from "@material-ui/core/styles";
 import IconButton from '@material-ui/core/IconButton';
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Modal from "@mui/material/Modal";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogContent from "@mui/material/DialogContent";
+import Slide from "@mui/material/Slide";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import saveGalleryIntoDataBase from "../api/saveGalleryApi";
+import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
+import getGalleries from "../api/getGalleriesApi";
 
 // Initialize the options for filters
 const COLLECTION_OPTIONS = [{value: "archaeology", label: "Archaeology"}];
@@ -62,6 +78,10 @@ const StyledChip = withStyles({
     }
 })(Chip);
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="down" ref={ref} {...props} />;
+});
+
 const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFilterChange}) => {
     const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
     const [view, setView] = useState("list");
@@ -83,10 +103,17 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const [totalRecords, setTotalRecords] = useState(0);
     const [artworkData, setArtworkData] = useState([]);
     const [showProgressbar, setShowProgressbar] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
+    const [galleryName, setGalleryName] = useState("");
+    const [galleryDescription, setGalleryDescription] = useState("");
+    const [galleryPrivate, setGalleryPrivate] = useState(false);
+    const [addedArtworkIdToGallery, setAddedArtworkIdToGallery] = useState("");
+    const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
+    const [userGalleries, setUserGalleries] = useState([]);
 
     useEffect(() => {
         setShowProgressbar(isLoading);
-        console.log("isLoading: ", isLoading);
         setCurrentPage(1);
         setTotalRecords(totalPages);
         setArtworkData(searchedArtworks);
@@ -128,6 +155,9 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
             console.error(err);
         }
     };
+
+
+
 
     const handlePageChange = (pageNumber) => {
         setShowProgressbar(true);
@@ -172,6 +202,10 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
 
     const handleCardClick = (artworkId, event) => {
+        if (isAddModalOpen) {
+            return;
+        }
+
         const target = event.target;
         let currentElement = target;
         let isInsideDataAndButtonsWrapper = false;
@@ -190,15 +224,16 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
         window.open(link, "_blank");
     };
 
-    const handleFavoriteClick = (artworkId) => {
-        console.log(artworkId)
+    const handleFavoriteClick = async (artwork) => {
+        let artworkId= artwork.artworkId;
         setArtworkData((prevArtworkData) =>
             prevArtworkData.map((artwork) =>
                 artwork.artworkId === artworkId ? {...artwork, isFavorited: !artwork.isFavorited} : artwork
             )
         );
-    };
+        const response = await saveLikedArtworkIntoDataBase(artwork);
 
+    };
 
     const ListView = forwardRef((props, ref) => {
 
@@ -261,13 +296,15 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
 
                                                     <span className="d-inline-flex align-items-center text-uppercase">
-                                             <AddCircleIcon sx={{fontSize: ".875rem"}}/>
+                                             <AddCircleIcon sx={{fontSize: ".875rem"}}
+                                                            onClick={() => toggleAddModal(artwork.artworkId, artwork.image)}/>
                                                 <span className="license-label-text">
                                                     Save
                                                </span>
                                                </span>
+
                                                     <span className="d-inline-flex align-items-center text-uppercase"
-                                                          onClick={() => handleFavoriteClick(artwork.artworkId)}>
+                                                          onClick={() => handleFavoriteClick(artwork)}>
                                              {artwork.isFavorited ? (
                                                  <>
                                                      <FavoriteIcon className="Like-label"
@@ -394,11 +431,11 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                color: artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
                                                 backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
                                             }}
                                                           className="hover-icon"/>
@@ -416,11 +453,11 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                color: artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
                                                 backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
                                             }}
                                                           className="hover-icon"/>
@@ -507,11 +544,11 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                color: artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
                                                 backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
                                             }}
                                                           className="hover-icon"/>
@@ -530,11 +567,11 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
                                                            className="hover-icon"/>
-                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork.artworkId)} sx={{
+                                            <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color:artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
+                                                color: artwork.isFavorited ? '#fff !important' : '#4d4d4d !important',
                                                 backgroundColor: artwork.isFavorited ? 'red !important' : '#fff !important'
                                             }}
                                                           className="hover-icon"/>
@@ -715,7 +752,8 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     style={{width: '100px', textAlign: "center"}}
                 />
 
-                <span className="mx-3">OF {Math.floor(totalRecords / 24 < 1 ? 1 : totalRecords / 24)}</span>
+                <span
+                    className="mx-3">OF {Math.floor(totalRecords / 24 < 1 ? 1 : (totalRecords / 24) > 42 ? 42 : (totalRecords / 24))}</span>
                 <button className="btn-page-nav mx-3" onClick={nextPage}>
                     NEXT&nbsp;
                     <FontAwesomeIcon icon={faArrowRight}/>
@@ -727,6 +765,90 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
     const childRef = useRef();
 
+
+    const toggleAddModal = async (artworkId, image) => {
+        setAddedArtworkIdToGallery(artworkId);
+        setAddedArtworkImageToGallery(image);
+        setIsAddModalOpen(!isAddModalOpen);
+        const response = await getGalleries();
+        setUserGalleries(response.galleries);
+
+    };
+    const toggleAddChildModal = (artworkId) => {
+        setIsAddModalChildOpen(!isAddModalChildOpen);
+    };
+
+    const handleGalleryNameChange = (e) => {
+        let value = e.target.value;
+        setGalleryName(value);
+    };
+    const handleGalleryDescriptionChange = (e) => {
+        let value = e.target.value;
+        setGalleryDescription(value);
+    };
+    const handleGalleryPublicChange = (e) => {
+        let value = e.target.checked;
+        console.log("check: ",value)
+        setGalleryPrivate(value);
+    };
+
+    const handleCreateGallerySubmit = async (event) => {
+        event.preventDefault();
+        if (!galleryName) {
+            return;
+        }
+        try {
+            const response = await saveGalleryIntoDataBase(addedArtworkIdToGallery, galleryName, addedArtworkImageToGallery, galleryDescription, galleryPrivate);
+        } catch (err) {
+            console.error(err);
+        }
+        const response = await getGalleries();
+        console.log('galleries',response.galleries)
+        setUserGalleries(response.galleries);
+        setGalleryName("");
+        setGalleryDescription("");
+        setGalleryPrivate(false);
+        setIsAddModalChildOpen(!isAddModalChildOpen);
+    };
+
+    const useStyles = makeStyles((theme) => ({
+        customButton: {
+            maxWidth: '750px',
+            minHeight: '55px',
+            minWidth: '550px',
+            display: 'flex',
+            justifyContent: 'left',
+            alignItems: 'center',
+            backgroundImage: (props) => `url(${props.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'white', // Customize the text color as needed
+            fontSize: '1rem', // Customize the font size as needed
+            fontWeight: 'bold', // Customize the font weight as needed
+            cursor: 'pointer', // Add a pointer cursor to indicate interactivity
+            border: 'none', // Remove the default button border
+            padding: theme.spacing(2), // Adjust padding as needed
+            '&:focus': {
+                outline: 'none', // Remove the default focus outline
+            },
+        },
+    }));
+
+    const GalleryButton = ({ gallery, setIsAddModalChildOpen }) => {
+        const classes = useStyles({ image: gallery.image }); // Pass the image prop to the custom button
+
+        return (
+            <Grid item xs={8}>
+                <Button className={classes.customButton} fullWidth onClick={() => setIsAddModalChildOpen(!isAddModalChildOpen)}>
+                    {gallery.gallery + ' (' + (!gallery.isPrivate ? "public" : "private") + ") - " + gallery.artworkIdIds.length + " items"}
+                </Button>
+            </Grid>
+        );
+    };
+
+
     return (
         <>
             {(localStorage.getItem('firstRun') != null && localStorage.getItem('firstRun') != "true") ?
@@ -736,7 +858,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                             <Row>
                                 <Col xs={10}>
                                     <h5 className="padtop">
-                                        {(`${totalRecords.toLocaleString()} RESULTS `)}
+                                        {totalRecords>5?(`${totalRecords.toLocaleString()} RESULTS `):""}
                                         {localStorage.getItem('currentQuery') ? <>
                                             <span>FOR</span>
                                             <StyledChip
@@ -776,6 +898,138 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                 {view === "grid" ? <CardView ref={childRef}/> : view === "list" ?
                                     <ListView ref={childRef}/> : <MosaicView ref={childRef}/>}
                             </div>
+                            <Dialog
+                                sx={{top: '-40%', '& .MuiBackdrop-root': {opacity: '0.9'}}}
+                                open={isAddModalOpen}
+                                TransitionComponent={Transition}
+                                keepMounted
+                                onClose={() => setIsAddModalOpen(!isAddModalOpen)}
+                                aria-describedby="alert-dialog-slide-description"
+                            >
+                                <DialogTitle>{"Add to gallery"}</DialogTitle>
+                                <DialogContent>
+                                    <DialogContentText id="alert-dialog-slide-description">
+                                        <Button style={{
+                                            maxWidth: '750px',
+                                            minHeight: '55px',
+                                            minWidth: '550px',
+                                            display: 'flex',
+                                            justifyContent: 'left',
+                                            alignItems: "center",
+                                            marginBottom: "20px"
+                                        }} fullWidth={true}
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    setIsAddModalChildOpen(!isAddModalChildOpen);
+                                                }}>CREATE NEW
+                                            GALLERY</Button>
+                                        <Grid container spacing={2}>
+                                            {userGalleries.map((gallery) => (
+                                                <GalleryButton gallery={gallery} setIsAddModalChildOpen={setIsAddModalChildOpen} />
+                                            ))}
+                                            {/*artworkId: artworkId,*/}
+                                            {/*gallery: galleryName,*/}
+                                            {/*image:image,*/}
+                                            {/*isPrivate:isPrivate,*/}
+                                            {/*galleryDescription:galleryDescription,*/}
+                                        </Grid>
+                                    </DialogContentText>
+                                </DialogContent>
+                                {/*<DialogActions>*/}
+                                <Button style={{
+                                    border: '2px solid black',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer',
+                                    borderColor: '#2196F3',
+                                    color: 'dodgerblue',
+                                    maxWidth: '75px',
+                                    minWidth: '55px',
+                                    marginLeft: '25px',
+                                    marginTop: '25px',
+                                    marginBottom: '30px',
+                                }} variant="outlined"
+                                        onClick={() => setIsAddModalOpen(!isAddModalOpen)}>Close</Button>
+                                {/*</DialogActions>*/}
+                            </Dialog>
+
+                            <Dialog
+                                sx={{top: '-5%', '& .MuiBackdrop-root': {opacity: '0.9'}}}
+                                open={isAddModalChildOpen}
+                                keepMounted
+                                onClose={() => setIsAddModalChildOpen(!isAddModalChildOpen)}
+                                aria-describedby="alert-dialog-slide-description"
+                            >
+                                <DialogTitle>{"Create gallery"}</DialogTitle>
+                                <DialogContent>
+                                    <DialogContentText id="alert-dialog-slide-description">
+                                        <form onSubmit={handleCreateGallerySubmit}>
+                                            <label> Gallery name</label>
+                                            <TextField
+                                                required
+                                                label=""
+                                                variant="outlined"
+                                                value={galleryName}
+                                                onChange={handleGalleryNameChange}
+                                                style={{
+                                                    maxWidth: '750px',
+                                                    minWidth: '550px',
+                                                    marginBottom: '0'
+                                                }} fullWidth={true}/>
+                                            <label style={{fontSize: '.75rem'}}> Required field</label>
+                                            <br/>
+                                            <br/>
+                                            <label> Gallery description</label>
+                                            <TextField
+                                                multiline
+                                                rows={4}
+                                                label=""
+                                                variant="outlined"
+                                                value={galleryDescription}
+                                                onChange={handleGalleryDescriptionChange}
+                                                fullWidth={true}/>
+                                            <FormControlLabel style={{
+                                                marginLeft: '1px',
+                                            }}
+                                                              control={<Checkbox value={galleryPrivate}
+                                                                                 onChange={handleGalleryPublicChange}/>}
+                                                              label="Keep this gallery private"/>
+                                        </form>
+                                    </DialogContentText>
+                                </DialogContent>
+                                <DialogActions>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={3}>
+                                            <Button style={{
+                                                border: '2px solid black',
+                                                backgroundColor: 'white',
+                                                cursor: 'pointer',
+                                                borderColor: '#2196F3',
+                                                color: 'dodgerblue',
+                                                maxWidth: '85px',
+                                                minWidth: '65px',
+                                                marginLeft: '10px',
+                                                marginBottom: '20px',
+                                            }} variant="outlined"
+                                                    onClick={() => setIsAddModalChildOpen(!isAddModalChildOpen)}>CANCEL</Button>
+                                        </Grid>
+                                        <Grid item xs={3}>
+
+                                        </Grid>
+                                        <Grid item xs={2}>
+
+                                        </Grid>
+                                        <Grid item xs={4}>
+                                            <Button style={{}}
+                                                    onClick={handleCreateGallerySubmit}>
+                                                CREATE GALLERY
+                                            </Button>
+                                        </Grid>
+
+                                    </Grid>
+
+
+                                </DialogActions>
+                            </Dialog>
                             {totalRecords > 1 &&
                             <div className="d-flex justify-content-center">
                                 <Pagination/>

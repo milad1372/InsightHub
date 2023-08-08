@@ -3,6 +3,7 @@ const app = express();
 
 const recordRoutes = express.Router();
 const apiCall = require("../business/ApiCall");
+const databaseOperations = require("../business/databaseOperation");
 
 recordRoutes.route("/").get(function () {
     console.log("api connected!\n");
@@ -57,5 +58,83 @@ recordRoutes.route("/recordList").post(function (request, response) {
         }
     });
 });
+
+recordRoutes.route("/saveGalleryIntoDataBase").post(async function (request, response) {
+    console.log('save Gallery into dataBase operation ____________________________________________');
+
+    let gallery = String(request.body.gallery).trim();
+    let artworkId = request.body.artworkId.trim();
+    let image = request.body.image;
+    let isPrivate = request.body.isPrivate;
+    let galleryDescription = request.body.galleryDescription;
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.saveGallery(gallery, artworkId, image, galleryDescription, user,isPrivate).then(function (isSavedSuccessful) {
+        console.log("is gallery save Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
+recordRoutes.route("/saveArtworkIntoDataBase").post(async function (request, response) {
+    console.log('save Gallery into dataBase operation ____________________________________________');
+
+    let artwork = request.body.artwork;
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.saveLikedArtwork(artwork, user).then(function (isSavedSuccessful) {
+        console.log("is artwork save Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
+recordRoutes.route("/getGalleries").post(function (request, response) {
+    console.log('get gallery  operation ____________________________________________');
+    let user = request.body.user ? request.body.user.trim().toLowerCase() : '';
+    databaseOperations.getGalleries(user).then(
+        function (galleries) {
+            console.log("retrieved galleries count from database: ", galleries.length, "\n");
+            response.status(200).send({
+                success: 'true',
+                galleries: galleries
+            });
+        })
+
+});
+
+recordRoutes.route("/getLikedArtworksForUser").post(function (request, response) {
+    console.log('get gallery  operation ____________________________________________');
+    let user = request.body.user ? request.body.user.trim().toLowerCase() : '';
+    databaseOperations.getLikedArtworksForUser(user).then(
+        function (likedArtworks) {
+            console.log("retrieved user liked artworks count from database: ", likedArtworks.length, "\n");
+            response.status(200).send({
+                success: 'true',
+                likedArtworks: likedArtworks
+            });
+        })
+
+});
+
+
 
 module.exports = recordRoutes;

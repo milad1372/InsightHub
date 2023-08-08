@@ -13,6 +13,7 @@ import {setContext} from "@apollo/client/link/context";
 import {getSavedArtworkIds} from "./utils/localStorage";
 import {Container, Row} from "react-bootstrap";
 import LoginForm from "./components/LoginForm";
+import UserProfile from "./pages/UserProfile";
 
 const httpLink = createHttpLink({
     uri: "/graphql",
@@ -92,6 +93,7 @@ const App = () => {
                     />
                     <Route exact path="/saved" component={SavedArtworks} />
                     <Route exact path="/LoginForm" component={LoginForm} />
+                    <Route exact path="/UserProfile" component={UserProfile} />
                 </Switch>
             </Router>
         </ApolloProvider>

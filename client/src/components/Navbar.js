@@ -178,14 +178,15 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
               <FontAwesomeIcon icon={faHome} /> Search For Books
             </Nav.Link> */}
                             {/* if user is logged in show saved books and logout */}
-                            {Auth.loggedIn() ? (
+                            {localStorage.getItem('loggedInUser') ? (
                                 <>
-                                    <Nav.Link as={Link} to="/saved">
-                                        <FontAwesomeIcon icon={faBook}/> See Your Books
-                                    </Nav.Link>
-                                    <Nav.Link onClick={Auth.logout}>
-                                        <FontAwesomeIcon icon={faUser}/> Logout
-                                    </Nav.Link>
+                                    {/*<Nav.Link as={Link} to="/saved">*/}
+                                    {/*    <FontAwesomeIcon icon={faBook}/> See Your Books*/}
+                                    {/*</Nav.Link>*/}
+                                    {/*<Nav.Link onClick={Auth.logout}>*/}
+                                    {/*    <FontAwesomeIcon icon={faUser}/> Logout*/}
+                                    {/*</Nav.Link>*/}
+                                    <Nav.Link href={'/UserProfile'}>MY PROFILE</Nav.Link>
                                 </>
                             ) : (
                                 <Nav.Link href={'/LoginForm'}>Login</Nav.Link>

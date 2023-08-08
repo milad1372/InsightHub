@@ -1,6 +1,6 @@
 const express = require("express");
 const path = require("path");
-const db = require("./config/connection");
+const dbo = require("./config/connection");
 
 // add apollo server
 const { ApolloServer } = require("apollo-server-express");
@@ -17,28 +17,43 @@ app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb'}));
 app.use(require("./routes/controller"));
 
-// add apollo middleware
-const startServer = async () => {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: authMiddleware,
+
+app.listen(PORT, () => {
+  // perform a database connection when server starts
+  dbo.connectToServer(function (err) {
+    if (err) console.error(err);
+
   });
-  await server.start();
-  server.applyMiddleware({ app });
-  console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
-};
-
-startServer();
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// if we're in production, serve client/build as static assets
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../client/build")));
-}
-
-db.once("open", () => {
-  app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
+  console.log(`Server is running on port: ${PORT}\n`);
 });
+
+
+// // add apollo middleware
+// const startServer = async () => {
+//   const server = new ApolloServer({
+//     typeDefs,
+//     resolvers,
+//     context: authMiddleware,
+//   });
+//   await server.start();
+//   server.applyMiddleware({ app });
+//   console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
+// };
+//
+// startServer();
+//
+// app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+//
+// if (process.env.NODE_ENV === "production") {
+//   app.use(express.static(path.join(__dirname, "../client/build")));
+// }
+//
+// app.listen(PORT, () => {
+//   // perform a database connection when server starts
+//   db.connectToServer(function (err) {
+//     if (err) console.error(err);
+//
+//   });
+//   console.log(`Server is running on port: ${PORT}\n`);
+// });
