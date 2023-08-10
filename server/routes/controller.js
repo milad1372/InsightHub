@@ -63,12 +63,12 @@ recordRoutes.route("/saveGalleryIntoDataBase").post(async function (request, res
     console.log('save Gallery into dataBase operation ____________________________________________');
 
     let gallery = String(request.body.gallery).trim();
-    let artworkId = request.body.artworkId.trim();
+    let artwork = request.body.artwork;
     let image = request.body.image;
     let isPrivate = request.body.isPrivate;
     let galleryDescription = request.body.galleryDescription;
     let user = request.body.user.trim().toLowerCase();
-    await databaseOperations.saveGallery(gallery, artworkId, image, galleryDescription, user,isPrivate).then(function (isSavedSuccessful) {
+    await databaseOperations.saveGallery(gallery, artwork, image, galleryDescription, user,isPrivate).then(function (isSavedSuccessful) {
         console.log("is gallery save Successful: ", isSavedSuccessful);
             if (isSavedSuccessful) {
                 response.status(200).send({
@@ -92,6 +92,72 @@ recordRoutes.route("/saveArtworkIntoDataBase").post(async function (request, res
     let user = request.body.user.trim().toLowerCase();
     await databaseOperations.saveLikedArtwork(artwork, user).then(function (isSavedSuccessful) {
         console.log("is artwork save Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
+recordRoutes.route("/deleteLikedArtwork").post(async function (request, response) {
+    console.log('delete Liked Artwork from dataBase operation ____________________________________________');
+
+    let artworkId = request.body.artworkId;
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.deleteLikedArtwork(artworkId, user).then(function (isSavedSuccessful) {
+        console.log("is artwork deleted Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
+recordRoutes.route("/deleteGallery").post(async function (request, response) {
+    console.log(' delete Gallery from dataBase operation ____________________________________________');
+
+    let galleryName = request.body.galleryName.trim().toLowerCase();
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.deleteGallery(galleryName, user).then(function (isSavedSuccessful) {
+        console.log("is artwork deleted Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
+recordRoutes.route("/updateGallery").post(async function (request, response) {
+    console.log('update deleteGallery from dataBase operation ____________________________________________');
+
+    let gallery = request.body.gallery;
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.updateGallery(gallery, user).then(function (isSavedSuccessful) {
+        console.log("is artwork update Successful: ", isSavedSuccessful);
             if (isSavedSuccessful) {
                 response.status(200).send({
                     success: 'true',

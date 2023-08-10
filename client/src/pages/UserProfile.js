@@ -8,48 +8,74 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import React, {forwardRef, useEffect, useImperativeHandle, useState} from "react";
-import {Card, Container, Row} from "react-bootstrap";
+import {Card, Col, Container, Row} from "react-bootstrap";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import getGalleries from "../api/getGalleriesApi";
 import getUserLikedArtworks from "../api/getUserLikedArtworksApi";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
+import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
+import { useHistory } from 'react-router-dom';
+import Icon from "@mui/material/Icon";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import DialogActions from "@mui/material/DialogActions";
+import saveGalleryIntoDataBase from "../api/saveGalleryApi";
 
 const UserProfile = function () {
+    const history = useHistory();
     const [value, setValue] = React.useState(1);
     const [userPublicGalleries, setUserPublicGalleries] = useState([]);
     const [userPrivateGalleries, setUserPrivateGalleries] = useState([]);
     const [userLikedArtworks, setUserLikedArtworks] = useState([]);
+    const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
+    const [galleryName, setGalleryName] = useState("");
+    const [galleryDescription, setGalleryDescription] = useState("");
+    const [galleryPrivate, setGalleryPrivate] = useState(false);
+    const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
+    const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
 
     const handleChange = async (event, newValue) => {
         setValue(newValue);
-        if (newValue==1){
+        if (newValue == 1) {
             const response = await getUserLikedArtworks();
-            setUserLikedArtworks(response.likedArtworks.length!=0? response.likedArtworks[0].artworks:[]);
+            setUserLikedArtworks(response.likedArtworks.length != 0 ? response.likedArtworks[0].artworks : []);
         }
-        if (newValue==2){
+        if (newValue == 2) {
             const response = await getGalleries();
             const filteredGalleries = response.galleries.filter((gallery) => gallery.isPrivate == false);
             setUserPublicGalleries(filteredGalleries);
-        }  if (newValue==3){
+        }
+        if (newValue == 3) {
             const response = await getGalleries();
             const filteredGalleries = response.galleries.filter((gallery) => gallery.isPrivate == true);
             setUserPrivateGalleries(filteredGalleries);
         }
     };
 
+    const handleCreateNewGalleryCardClick= (event) => {
+        setIsAddModalChildOpen(!isAddModalChildOpen);
+    }
 
     const PublicGalleris = (() => {
         const [showProgressbar, setShowProgressbar] = useState(false);
 
-        const handleCardClick = (artworkId, event) => {
+        const handleCardClick = (gallery, event) => {
+            event.preventDefault();
+            history.push('/Gallery', { galleryData: gallery });
         }
+
 
 
         return (
             <Container className="card-container-grid mx-0">
-                {showProgressbar ?
+                {showProgressbar ? (
                     <div className={'progressbarBox'}>
                         <CircularProgress
                             size={20}
@@ -62,40 +88,64 @@ const UserProfile = function () {
                                 bottom: 0,
                                 left: 0,
                                 right: 0,
-
                                 margin: 'auto'
-                            }}/>
+                            }}
+                        />
                     </div>
-                    :
-                    userPublicGalleries.map((gallery) => (
-                        <Card key={gallery.gallery} className="artwork-card-grid"
-                              onClick={(event) => handleCardClick(gallery.gallery, event)}>
-                            {/* Card image */}
-                            {gallery.image && gallery.image !== "No image available" ? (
-                                <div className={'temp'}>
-                                    <Card.Img className="card-image-grid"
-                                              src={gallery.image}
-                                              alt={`The image for ${gallery.gallery}`}
-                                              variant="top"
-                                    />
+                ) : (
+                    <>
+                        {userPublicGalleries.map((gallery) => (
+                            <Card
+                                key={gallery.gallery}
+                                className="artwork-card-grid"
+                                onClick={(event) => handleCardClick(gallery, event)}
+                            >
+                                {/* Card image */}
+                                {gallery.image && gallery.image !== 'No image available' ? (
+                                    <div className={'temp'}>
+                                        <Card.Img
+                                            className="card-image-grid"
+                                            src={gallery.image}
+                                            alt={`The image for ${gallery.gallery}`}
+                                            variant="top"
+                                            style={{ height: '200px' }} // Set a fixed height for the image
+                                        />
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <Card.Img
+                                            className="card-image-grid"
+                                            src="./url.png"
+                                            alt="Fallback"
+                                            variant="top"
+                                            style={{ height: '200px' }} // Set a fixed height for the image
+                                        />
+                                    </div>
+                                )}
+                                {/* Card body */}
+                                <Card.Body>
+                                    <Card.Title>{gallery.artworks==null?0:gallery.artworks.length + ' items'}</Card.Title>
+                                    <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
+                                </Card.Body>
+                            </Card>
+                        ))}
 
-                                </div>
-                            ) : (
-                                <div>
-                                    <Card.Img className="card-image-grid"
-                                              src="./url.png"
-                                              alt="Fallback"
-                                              variant="top"
+                        {/* Add the "Create new gallery" card here */}
+                        <Card key={"createGal"} className="artwork-card-grid" onClick={(event) => handleCreateNewGalleryCardClick(event)}>
+                            <div className={'temp'}>
+                                <Box sx={{ padding: '10px' }}>
+                                    <Card.Img
+                                        className="card-image-grid"
+                                        src="./create-new-gallery.png"
+                                        alt={`The image for create`}
+                                        variant="top"
+                                        style={{ height: '275px' }} // Set a fixed height for the image
                                     />
-                                </div>
-                            )}
-                            {/* Card body */}
-                            <Card.Body>
-                                <Card.Title>{gallery.artworkIdIds.length + " items"}</Card.Title>
-                                <Card.Text>{gallery.gallery == "null" ? "" : gallery.gallery}</Card.Text>
-                            </Card.Body>
+                                </Box>
+                            </div>
                         </Card>
-                    ))}
+                    </>
+                )}
             </Container>
         );
     });
@@ -103,13 +153,15 @@ const UserProfile = function () {
     const PrivateGalleris = (() => {
         const [showProgressbar, setShowProgressbar] = useState(false);
 
-        const handleCardClick = (artworkId, event) => {
+        const handleCardClick = (gallery, event) => {
+            event.preventDefault();
+            history.push('/Gallery', { galleryData: gallery });
         }
 
 
         return (
             <Container className="card-container-grid mx-0">
-                {showProgressbar ?
+                {showProgressbar ? (
                     <div className={'progressbarBox'}>
                         <CircularProgress
                             size={20}
@@ -122,40 +174,65 @@ const UserProfile = function () {
                                 bottom: 0,
                                 left: 0,
                                 right: 0,
-
                                 margin: 'auto'
-                            }}/>
+                            }}
+                        />
                     </div>
-                    :
-                    userPrivateGalleries.map((gallery) => (
-                        <Card key={gallery.gallery} className="artwork-card-grid"
-                              onClick={(event) => handleCardClick(gallery.gallery, event)}>
-                            {/* Card image */}
-                            {gallery.image && gallery.image !== "No image available" ? (
-                                <div className={'temp'}>
-                                    <Card.Img className="card-image-grid"
-                                              src={gallery.image}
-                                              alt={`The image for ${gallery.gallery}`}
-                                              variant="top"
-                                    />
+                ) : (
+                    <>
+                        {userPrivateGalleries.map((gallery) => (
+                            <Card
+                                key={gallery.gallery}
+                                className="artwork-card-grid"
+                                onClick={(event) => handleCardClick(gallery, event)}
+                            >
+                                {/* Card image */}
+                                {gallery.image && gallery.image !== 'No image available' ? (
+                                    <div className={'temp'}>
+                                        <Card.Img
+                                            className="card-image-grid"
+                                            src={gallery.image}
+                                            alt={`The image for ${gallery.gallery}`}
+                                            variant="top"
+                                            style={{ height: '200px' }} // Set a fixed height for the image
+                                        />
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <Card.Img
+                                            className="card-image-grid"
+                                            src="./url.png"
+                                            alt="Fallback"
+                                            variant="top"
+                                            style={{ height: '200px' }} // Set a fixed height for the image
+                                        />
+                                    </div>
+                                )}
+                                {/* Card body */}
+                                <Card.Body>
+                                    <Card.Title>{gallery.artworks==null?0:gallery.artworks.length + ' items'}</Card.Title>
+                                    <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
+                                </Card.Body>
+                            </Card>
+                        ))}
 
-                                </div>
-                            ) : (
-                                <div>
-                                    <Card.Img className="card-image-grid"
-                                              src="./url.png"
-                                              alt="Fallback"
-                                              variant="top"
+                        {/* Add the "Create new gallery" card here */}
+                        <Card key={"createGal"} className="artwork-card-grid" onClick={(event) => handleCreateNewGalleryCardClick(event)}>
+                            <div className={'temp'}>
+                                <Box sx={{ padding: '10px' }}>
+                                    <Card.Img
+                                        className="card-image-grid"
+                                        src="./create-new-gallery.png"
+                                        alt={`The image for create`}
+                                        variant="top"
+                                        style={{ height: '275px' }} // Set a fixed height for the image
                                     />
-                                </div>
-                            )}
-                            {/* Card body */}
-                            <Card.Body>
-                                <Card.Title>{gallery.artworkIdIds.length + " items"}</Card.Title>
-                                <Card.Text>{gallery.gallery == "null" ? "" : gallery.gallery}</Card.Text>
-                            </Card.Body>
+                                </Box>
+                            </div>
                         </Card>
-                    ))}
+                    </>
+
+                )}
             </Container>
         );
     });
@@ -193,15 +270,12 @@ const UserProfile = function () {
         };
 
         const handleFavoriteClick = async (artwork) => {
-            // let artworkId= artwork.artworkId;
-            // setArtworkData((prevArtworkData) =>
-            //     prevArtworkData.map((artwork) =>
-            //         artwork.artworkId === artworkId ? {...artwork, isFavorited: !artwork.isFavorited} : artwork
-            //     )
-            // );
-            // const response = await saveLikedArtworkIntoDataBase(artwork);
+            const response1 = await deleteLikedArtworkFromDataBase(artwork.artworkId);
+            const response = await getUserLikedArtworks();
+            setUserLikedArtworks(response.likedArtworks.length != 0 ? response.likedArtworks[0].artworks : []);
 
         };
+
         return (
             <Container className="card-container-grid mx-0">
                 {showProgressbar ?
@@ -242,8 +316,8 @@ const UserProfile = function () {
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color: '#fff !important' ,
-                                                backgroundColor:  'red !important'
+                                                color: '#fff !important',
+                                                backgroundColor: 'red !important'
                                             }}
                                                           className="hover-icon"/>
                                         </div>
@@ -264,8 +338,8 @@ const UserProfile = function () {
                                                 fontSize: "10px",
                                                 height: "36px",
                                                 width: "36px",
-                                                color: '#fff !important' ,
-                                                backgroundColor:  'red !important'
+                                                color: '#fff !important',
+                                                backgroundColor: 'red !important'
                                             }}
                                                           className="hover-icon"/>
                                         </div>
@@ -286,21 +360,79 @@ const UserProfile = function () {
     });
 
 
-    return (<Grid container spacing={5}
+    const handleGalleryNameChange = (e) => {
+        let value = e.target.value;
+        setGalleryName(value);
+    };
+    const handleGalleryDescriptionChange = (e) => {
+        let value = e.target.value;
+        setGalleryDescription(value);
+    };
+    const handleGalleryPublicChange = (e) => {
+        let value = e.target.checked;
+        console.log("check: ",value)
+        setGalleryPrivate(value);
+    };
+
+    const handleCreateGallerySubmit = async (event) => {
+        event.preventDefault();
+        if (!galleryName) {
+            return;
+        }
+        try {
+            const response = await saveGalleryIntoDataBase(addedArtworkToGallery, galleryName, addedArtworkImageToGallery, galleryDescription, galleryPrivate);
+        } catch (err) {
+            console.error(err);
+        }
+        if (value == 2) {
+            const response = await getGalleries();
+            const filteredGalleries = response.galleries.filter((gallery) => gallery.isPrivate == false);
+            setUserPublicGalleries(filteredGalleries);
+        }
+        if (value == 3) {
+            const response = await getGalleries();
+            const filteredGalleries = response.galleries.filter((gallery) => gallery.isPrivate == true);
+            setUserPrivateGalleries(filteredGalleries);
+        }
+
+        setGalleryName("");
+        setGalleryDescription("");
+        setGalleryPrivate(false);
+        setIsAddModalChildOpen(!isAddModalChildOpen);
+    };
+
+
+    return (
+        <Grid container spacing={2}
                   direction="row"
                   justifyContent="center"
                   alignItems="center">
         <Grid item xs={12}>
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{marginTop:'100px',display: 'flex',
+                justifyContent:"center",
+                alignItems:"center"}}>
                 @{localStorage.getItem('loggedInUser')}
             </Typography>
         </Grid>
         <Grid item xs={5}>
 
         </Grid>
-        <Grid item xs={2}>
-            <Button variant="outlined">Edit profile</Button>
-            <Button variant="outlined" onClick={()=> {localStorage.setItem('loggedInUser',"");  window.location.href = '/';}}>Log out</Button>
+        <Grid item xs={2} sx={{display: 'flex',
+            justifyContent:"center",
+            alignItems:"center"}} >
+            <Button color="secondary" style={   {
+                background: '#f1f1ee',
+                border: '1px solid #f1f1ee',
+                borderRadius: '0.25rem',
+                color: '#4d4d4d',
+                fontSize: '.875rem',
+                fontWeight: '600',
+                textTransform: 'uppercase'
+            }
+               }  onClick={() => {
+                localStorage.setItem('loggedInUser', "");
+                window.location.href = '/';
+            }}>Log out</Button>
         </Grid>
         <Grid item xs={5}>
 
@@ -328,7 +460,86 @@ const UserProfile = function () {
                         </TabPanel>
                     </Box>
                 </TabContext>
+                <Dialog
+                    sx={{top: '-5%', '& .MuiBackdrop-root': {opacity: '0.9'}}}
+                    open={isAddModalChildOpen}
+                    keepMounted
+                    onClose={() => setIsAddModalChildOpen(!isAddModalChildOpen)}
+                    aria-describedby="alert-dialog-slide-description"
+                >
+                    <DialogTitle>{"Create gallery"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-slide-description">
+                            <form onSubmit={handleCreateGallerySubmit}>
+                                <label> Gallery name</label>
+                                <TextField
+                                    required
+                                    label=""
+                                    variant="outlined"
+                                    value={galleryName}
+                                    onChange={handleGalleryNameChange}
+                                    style={{
+                                        maxWidth: '750px',
+                                        minWidth: '550px',
+                                        marginBottom: '0'
+                                    }} fullWidth={true}/>
+                                <label style={{fontSize: '.75rem'}}> Required field</label>
+                                <br/>
+                                <br/>
+                                <label> Gallery description</label>
+                                <TextField
+                                    multiline
+                                    rows={4}
+                                    label=""
+                                    variant="outlined"
+                                    value={galleryDescription}
+                                    onChange={handleGalleryDescriptionChange}
+                                    fullWidth={true}/>
+                                <FormControlLabel style={{
+                                    marginLeft: '1px',
+                                }}
+                                                  control={<Checkbox checked={galleryPrivate}
+                                                                     onChange={handleGalleryPublicChange}/>}
+                                                  label="Keep this gallery private"/>
+                            </form>
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Grid container spacing={2}>
+                            <Grid item xs={3}>
+                                <Button style={{
+                                    border: '2px solid black',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer',
+                                    borderColor: '#2196F3',
+                                    color: 'dodgerblue',
+                                    maxWidth: '85px',
+                                    minWidth: '65px',
+                                    marginLeft: '10px',
+                                    marginBottom: '20px',
+                                }} variant="outlined"
+                                        onClick={() => setIsAddModalChildOpen(!isAddModalChildOpen)}>CANCEL</Button>
+                            </Grid>
+                            <Grid item xs={3}>
+
+                            </Grid>
+                            <Grid item xs={2}>
+
+                            </Grid>
+                            <Grid item xs={4}>
+                                <Button  style={{backgroundColor: "#0a72cc", fontSize: '.875rem'}}     variant="contained"
+                                        onClick={handleCreateGallerySubmit}>
+                                    CREATE GALLERY
+                                </Button>
+                            </Grid>
+
+                        </Grid>
+
+
+                    </DialogActions>
+                </Dialog>
             </Box>
+
         </Grid>
 
 

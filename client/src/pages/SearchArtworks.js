@@ -48,6 +48,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import saveGalleryIntoDataBase from "../api/saveGalleryApi";
 import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
+import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
 import getGalleries from "../api/getGalleriesApi";
 
 // Initialize the options for filters
@@ -86,6 +87,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
     const [view, setView] = useState("list");
     const [currentPage, setCurrentPage] = useState(1);
+    const [filterQuery, setFilterQuery] = useState("");
 
     // States for filters
     const [selectedCollection, setSelectedCollection] = useState([]);
@@ -103,12 +105,13 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const [totalRecords, setTotalRecords] = useState(0);
     const [artworkData, setArtworkData] = useState([]);
     const [showProgressbar, setShowProgressbar] = useState(false);
+    const [facets, setFacets] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
     const [galleryName, setGalleryName] = useState("");
     const [galleryDescription, setGalleryDescription] = useState("");
     const [galleryPrivate, setGalleryPrivate] = useState(false);
-    const [addedArtworkIdToGallery, setAddedArtworkIdToGallery] = useState("");
+    const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
     const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
     const [userGalleries, setUserGalleries] = useState([]);
 
@@ -225,6 +228,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     };
 
     const handleFavoriteClick = async (artwork) => {
+        if(localStorage.getItem('loggedInUser')){
+            if (!artwork.isFavorited) {
+                const response = await saveLikedArtworkIntoDataBase(artwork);
+            } else {
+                const response = await deleteLikedArtworkFromDataBase(artwork.artworkId);
+            }
+        }
+
         let artworkId= artwork.artworkId;
         setArtworkData((prevArtworkData) =>
             prevArtworkData.map((artwork) =>
@@ -297,7 +308,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
                                                     <span className="d-inline-flex align-items-center text-uppercase">
                                              <AddCircleIcon sx={{fontSize: ".875rem"}}
-                                                            onClick={() => toggleAddModal(artwork.artworkId, artwork.image)}/>
+                                                            onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                                 <span className="license-label-text">
                                                     Save
                                                </span>
@@ -766,13 +777,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const childRef = useRef();
 
 
-    const toggleAddModal = async (artworkId, image) => {
-        setAddedArtworkIdToGallery(artworkId);
-        setAddedArtworkImageToGallery(image);
-        setIsAddModalOpen(!isAddModalOpen);
-        const response = await getGalleries();
-        setUserGalleries(response.galleries);
-
+    const toggleAddModal = async (artwork, image) => {
+        if(localStorage.getItem('loggedInUser')){
+            setAddedArtworkToGallery(artwork);
+            setAddedArtworkImageToGallery(image);
+            setIsAddModalOpen(!isAddModalOpen);
+            const response = await getGalleries();
+            setUserGalleries(response.galleries);
+        }
     };
     const toggleAddChildModal = (artworkId) => {
         setIsAddModalChildOpen(!isAddModalChildOpen);
@@ -798,7 +810,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
             return;
         }
         try {
-            const response = await saveGalleryIntoDataBase(addedArtworkIdToGallery, galleryName, addedArtworkImageToGallery, galleryDescription, galleryPrivate);
+            const response = await saveGalleryIntoDataBase(addedArtworkToGallery, galleryName, addedArtworkImageToGallery, galleryDescription, galleryPrivate);
         } catch (err) {
             console.error(err);
         }
@@ -842,7 +854,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
         return (
             <Grid item xs={8}>
                 <Button className={classes.customButton} fullWidth onClick={() => setIsAddModalChildOpen(!isAddModalChildOpen)}>
-                    {gallery.gallery + ' (' + (!gallery.isPrivate ? "public" : "private") + ") - " + gallery.artworkIdIds.length + " items"}
+                    {gallery.gallery + ' (' + (!gallery.isPrivate ? "public" : "private") + ") - " + gallery.artworks==null?0:gallery.artworks.length + " items"}
                 </Button>
             </Grid>
         );
@@ -990,7 +1002,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                             <FormControlLabel style={{
                                                 marginLeft: '1px',
                                             }}
-                                                              control={<Checkbox value={galleryPrivate}
+                                                              control={<Checkbox checked={galleryPrivate}
                                                                                  onChange={handleGalleryPublicChange}/>}
                                                               label="Keep this gallery private"/>
                                         </form>
