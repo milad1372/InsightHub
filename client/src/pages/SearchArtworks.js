@@ -93,6 +93,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const [filterQuery, setFilterQuery] = useState("");
     const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [anyFilterSelected, setAnyFilterSelected] = useState(false);
 
     // States for filters
     const [selectedCollection, setSelectedCollection] = useState([]);
@@ -144,6 +145,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
           newFilterQuery += selectedCollection
             .map((option) => "&qf=collection%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedContentTier.length > 0) {
@@ -152,30 +154,36 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
               (option) => "&qf=contentTier%3A" + encodeURIComponent(option.value)
             )
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedType.length > 0) {
           newFilterQuery += selectedType
             .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedCountry.length > 0) {
           newFilterQuery += selectedCountry
             .map((option) => "&qf=COUNTRY%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedLanguage.length > 0) {
           newFilterQuery += selectedLanguage
             .map((option) => "&qf=LANGUAGE%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
+
         }
     
         if (selectedProvider.length > 0) {
           newFilterQuery += selectedProvider
             .map((option) => "&qf=PROVIDER%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedDataProvider.length > 0) {
@@ -184,6 +192,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
               (option) => "&qf=DATA_PROVIDER%3A" + encodeURIComponent(option.value)
             )
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedColourPalette.length > 0) {
@@ -192,6 +201,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
               (option) => "&qf=COLOURPALETTE%3A" + encodeURIComponent(option.value)
             )
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedImageAspectRatio.length > 0) {
@@ -201,24 +211,28 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 "&qf=IMAGE_ASPECTRATIO%3A" + encodeURIComponent(option.value)
             )
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedImageSize.length > 0) {
           newFilterQuery += selectedImageSize
             .map((option) => "&qf=IMAGE_SIZE%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedMimeType.length > 0) {
           newFilterQuery += selectedMimeType
             .map((option) => "&qf=MIME_TYPE%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         if (selectedRights.length > 0) {
           newFilterQuery += selectedRights
             .map((option) => "&qf=RIGHTS%3A" + encodeURIComponent(option.value))
             .join("");
+            setAnyFilterSelected(true);
         }
     
         // Remove leading "&"
@@ -714,6 +728,22 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
         );
     });
 
+    const resetAllFilters = () => {
+      setSelectedCollection([]);
+      setSelectedContentTier([]);
+      setSelectedType([]);
+      setSelectedCountry([]);
+      setSelectedLanguage([]);
+      setSelectedProvider([]);
+      setSelectedDataProvider([]);
+      setSelectedColourPalette([]);
+      setSelectedImageAspectRatio([]);
+      setSelectedImageSize([]);
+      setSelectedMimeType([]);
+      setSelectedRights([]);
+      setAnyFilterSelected(false);
+    };
+      
     
     const FilterChip = ({ selectedValues, onRemove }) => (
         <span className="badge b-form-tag d-inline-flex align-items-baseline mw-100 remove-button badge-primary-light badge-pill">
@@ -744,9 +774,18 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
               ? "> HIDE SHOW ADVANCED SEARCH"
               : "< SHOW ADVANCED SEARCH"}
           </button>
-      
+
           <div className="row filters-header border-bottom border-top d-flex justify-content-between align-items-center">
             <div className="filters-title">Search filters</div>
+            {anyFilterSelected && (
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={resetAllFilters}
+              >
+                Reset Filters
+              </button>
+            )}
           </div>
           <Form>
             {/* Collection Filter */}
@@ -762,10 +801,13 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     </Tooltip>
                   }
                 >
-                  <FaInfoCircle className="tooltipStyle" color="gray"/>
+                  <FaInfoCircle className="tooltipStyle" color="gray" />
                 </OverlayTrigger>
               </Form.Label>
-              <FilterChip selectedValues={selectedCollection} onRemove={() => setSelectedCollection([])} />
+              <FilterChip
+                selectedValues={selectedCollection}
+                onRemove={() => setSelectedCollection([])}
+              />
               <Select
                 options={COLLECTION_OPTIONS}
                 isMulti
@@ -775,11 +817,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 }
               />
             </Form.Group>
-      
+
             {/* Content Tier Filter */}
             <Form.Group controlId="contentTierFilter">
               <Form.Label className="label">TYPE OF MEDIA</Form.Label>
-              <FilterChip selectedValues={selectedContentTier} onRemove={() => setSelectedContentTier([])} />
+              <FilterChip
+                selectedValues={selectedContentTier}
+                onRemove={() => setSelectedContentTier([])}
+              />
               <Select
                 options={CONTENT_TIER_OPTIONS}
                 isMulti
@@ -789,11 +834,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 }
               />
             </Form.Group>
-      
+
             {/* Type Filter */}
             <Form.Group controlId="typeFilter">
               <Form.Label className="label">Type</Form.Label>
-              <FilterChip selectedValues={selectedType} onRemove={() => setSelectedType([])} />
+              <FilterChip
+                selectedValues={selectedType}
+                onRemove={() => setSelectedType([])}
+              />
               <Select
                 options={TYPE_OPTIONS}
                 isMulti
@@ -801,7 +849,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 onChange={(selectedOption) => setSelectedType(selectedOption)}
               />
             </Form.Group>
-      
+
             {/* Additional Filters */}
             <button
               aria-controls="additional-filters"
@@ -818,7 +866,10 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 {/* Country Filter */}
                 <Form.Group controlId="countryFilter">
                   <Form.Label className="label">Country</Form.Label>
-                  <FilterChip selectedValues={selectedCountry} onRemove={() => setSelectedCountry([])} />
+                  <FilterChip
+                    selectedValues={selectedCountry}
+                    onRemove={() => setSelectedCountry([])}
+                  />
                   <Select
                     options={COUNTRY_OPTIONS}
                     isMulti
@@ -828,11 +879,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Language Filter */}
                 <Form.Group controlId="languageFilter">
                   <Form.Label className="label">Language</Form.Label>
-                  <FilterChip selectedValues={selectedLanguage} onRemove={() => setSelectedLanguage([])} />
+                  <FilterChip
+                    selectedValues={selectedLanguage}
+                    onRemove={() => setSelectedLanguage([])}
+                  />
                   <Select
                     options={LANGUAGE_OPTIONS}
                     isMulti
@@ -842,11 +896,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Provider Filter */}
                 <Form.Group controlId="providerFilter">
                   <Form.Label className="label">Provider</Form.Label>
-                  <FilterChip selectedValues={selectedProvider} onRemove={() => setSelectedProvider([])} />
+                  <FilterChip
+                    selectedValues={selectedProvider}
+                    onRemove={() => setSelectedProvider([])}
+                  />
                   <Select
                     options={PROVIDER_OPTIONS}
                     isMulti
@@ -856,11 +913,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Data Provider Filter */}
                 <Form.Group controlId="dataProviderFilter">
                   <Form.Label className="label">Data Provider</Form.Label>
-                  <FilterChip selectedValues={selectedDataProvider} onRemove={() => setSelectedDataProvider([])} />
+                  <FilterChip
+                    selectedValues={selectedDataProvider}
+                    onRemove={() => setSelectedDataProvider([])}
+                  />
                   <Select
                     options={DATA_PROVIDER_OPTIONS}
                     isMulti
@@ -870,11 +930,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Colour Palette Filter */}
                 <Form.Group controlId="colourPaletteFilter">
                   <Form.Label className="label">Colour Palette</Form.Label>
-                  <FilterChip selectedValues={selectedColourPalette} onRemove={() => setSelectedColourPalette([])} />
+                  <FilterChip
+                    selectedValues={selectedColourPalette}
+                    onRemove={() => setSelectedColourPalette([])}
+                  />
                   <Select
                     className="dropdown-toggle"
                     options={COLOUR_PALETTE_OPTIONS}
@@ -885,11 +948,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Image Aspect Ratio Filter */}
                 <Form.Group controlId="imageAspectRatioFilter">
                   <Form.Label className="label">Image Aspect Ratio</Form.Label>
-                  <FilterChip selectedValues={selectedImageAspectRatio} onRemove={() => setSelectedImageAspectRatio([])} />
+                  <FilterChip
+                    selectedValues={selectedImageAspectRatio}
+                    onRemove={() => setSelectedImageAspectRatio([])}
+                  />
                   <Select
                     options={IMAGE_ASPECTRATIO_OPTIONS}
                     isMulti
@@ -899,11 +965,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Image Size Filter */}
                 <Form.Group controlId="imageSizeFilter">
                   <Form.Label className="label">Image Size</Form.Label>
-                  <FilterChip selectedValues={selectedImageSize} onRemove={() => setSelectedImageSize([])} />
+                  <FilterChip
+                    selectedValues={selectedImageSize}
+                    onRemove={() => setSelectedImageSize([])}
+                  />
                   <Select
                     options={IMAGE_SIZE_OPTIONS}
                     isMulti
@@ -913,11 +982,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Mime Type Filter */}
                 <Form.Group controlId="mimeTypeFilter">
                   <Form.Label className="label">Mime Type</Form.Label>
-                  <FilterChip selectedValues={selectedMimeType} onRemove={() => setSelectedMimeType([])} />
+                  <FilterChip
+                    selectedValues={selectedMimeType}
+                    onRemove={() => setSelectedMimeType([])}
+                  />
                   <Select
                     options={MIME_TYPE_OPTIONS}
                     isMulti
@@ -927,11 +999,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                     }
                   />
                 </Form.Group>
-      
+
                 {/* Rights Filter */}
                 <Form.Group controlId="rightsFilter">
                   <Form.Label className="label">Rights</Form.Label>
-                  <FilterChip selectedValues={selectedRights} onRemove={() => setSelectedRights([])} />
+                  <FilterChip
+                    selectedValues={selectedRights}
+                    onRemove={() => setSelectedRights([])}
+                  />
                   <Select
                     options={RIGHTS_OPTIONS}
                     isMulti

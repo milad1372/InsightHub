@@ -467,3 +467,12 @@ data-and-buttons-wrapper [class^=icon-] {
     display: none;
   }
 }
+
+.btn-outline-primary {
+  background-color: #fff;
+  border-color: #0a72cc;
+  color: #0a72cc;
+  font-size: .875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
