@@ -112,7 +112,6 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
     const [totalRecords, setTotalRecords] = useState(0);
     const [artworkData, setArtworkData] = useState([]);
     const [showProgressbar, setShowProgressbar] = useState(false);
-    const [facets, setFacets] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
     const [galleryName, setGalleryName] = useState("");
