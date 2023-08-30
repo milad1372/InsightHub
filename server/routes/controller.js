@@ -151,6 +151,29 @@ recordRoutes.route("/deleteGallery").post(async function (request, response) {
 
 });
 
+recordRoutes.route("/deleteArtworkFromGallery").post(async function (request, response) {
+    console.log(' delete Gallery from dataBase operation ____________________________________________');
+
+    let galleryId = request.body.galleryId.trim().toLowerCase();
+    let artworkId = request.body.artworkId.trim().toLowerCase();
+    let user = request.body.user.trim().toLowerCase();
+    await databaseOperations.deleteArtworkFromGallery(galleryId, artworkId, user).then(function (isSavedSuccessful) {
+        console.log("is artwork deleted Successful: ", isSavedSuccessful);
+            if (isSavedSuccessful) {
+                response.status(200).send({
+                    success: 'true',
+                    data: [],
+                });
+            } else {
+                response.status(500).send({
+                    success: 'false',
+                    data: [],
+                })
+            }
+    })
+
+});
+
 recordRoutes.route("/updateGallery").post(async function (request, response) {
     console.log('update deleteGallery from dataBase operation ____________________________________________');
 

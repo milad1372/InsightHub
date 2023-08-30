@@ -48,12 +48,13 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import saveGalleryIntoDataBase from "../api/saveGalleryApi";
 import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
+import deleteArtworkFromGallery from "../api/deleteArtworkFromGalleryApi";
 import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
 import getGalleries from "../api/getGalleriesApi";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { FaInfoCircle } from 'react-icons/fa';
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 // Initialize the options for filters
 const COLLECTION_OPTIONS = [{value: "archaeology", label: "Archaeology"}];
@@ -129,8 +130,6 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
             filterQuery,
             currentPage
           );
-          console.log("API Response:", response);
-          console.log("ArtworkData", artworkData);
           setFacets(response?.facets || {});
           setArtworkData(response?.artworkData || []);
           setTotalRecords(response?.totalPages || 0);
@@ -450,7 +449,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
                                                     <span className="d-inline-flex align-items-center text-uppercase">
                                              <AddCircleIcon sx={{fontSize: ".875rem"}}
-                                                            onClick={() => toggleAddModal(artwork.artworkId, artwork.image)}/>
+                                                            onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                                 <span className="license-label-text buttons-wrapper-icon" >
                                                     Save
                                                </span>
@@ -583,7 +582,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -605,7 +604,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -696,7 +695,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -719,7 +718,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -1144,13 +1143,14 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
 
     const useStyles = makeStyles((theme) => ({
         customButton: {
+
             maxWidth: '750px',
             minHeight: '55px',
             minWidth: '550px',
             display: 'flex',
-            justifyContent: 'left',
+            backgroundImage: (props) => !props.isGalleryButtonSelected ? `url(${props.image})` : 'none', // Apply background image if not selected
+            justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundImage: (props) => `url(${props.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             position: 'relative',
@@ -1165,20 +1165,68 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                 outline: 'none', // Remove the default focus outline
             },
         },
+        selectedButton: {
+            backgroundImage: 'none', // Remove background image
+            backgroundColor: theme.palette.success.main,
+            '&:hover': {
+                backgroundColor: theme.palette.success.dark,
+            },
+        },
+        checkboxIcon: {
+            marginLeft: theme.spacing(1),
+        },
     }));
 
+
     const GalleryButton = ({ gallery, setIsAddModalChildOpen }) => {
-        const classes = useStyles({ image: gallery.image }); // Pass the image prop to the custom button
+        const [isGalleryButtonSelected, setIsGalleryButtonSelected] = useState(false);
+        const [galleryArtWorks, setGalleryArtWorks] = useState([]);
+        const classes = useStyles({ image: gallery.image, isGalleryButtonSelected });
+
+        useEffect(() => {
+            setGalleryArtWorks(gallery.artworks);
+        }, [isGalleryButtonSelected]);
+
+        const handleButtonClick = async () => {
+            setIsGalleryButtonSelected(prevState => !prevState);
+
+            try {
+                if (!isGalleryButtonSelected) {
+                    const response = await saveGalleryIntoDataBase(addedArtworkToGallery, gallery.gallery, gallery.image, gallery.galleryDescription, gallery.isPrivate);
+                    let elementPos = gallery.artworks.map(function(x) {return x.artworkId.toLocaleLowerCase(); }).indexOf(addedArtworkToGallery.artworkId.toLocaleLowerCase());
+                    if (elementPos == -1) {
+                        setGalleryArtWorks(updatedArtworks => [...updatedArtworks, addedArtworkToGallery]);
+                    }
+                } else {
+                    const response = await deleteArtworkFromGallery(addedArtworkToGallery.artworkId, gallery._id);
+                    setGalleryArtWorks(updatedArtworks =>
+                        updatedArtworks.filter(artwork => artwork.artworkId.toLocaleLowerCase() !== addedArtworkToGallery.artworkId.toLocaleLowerCase())
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
         return (
             <Grid item xs={8}>
-                <Button className={classes.customButton} fullWidth onClick={() => setIsAddModalChildOpen(!isAddModalChildOpen)}>
-                    {gallery.gallery + ' (' + (!gallery.isPrivate ? "public" : "private") + ") - " + gallery.artworks==null?0:gallery.artworks.length + " items"}
+                <Button
+                    className={`${classes.customButton} ${isGalleryButtonSelected && classes.selectedButton}`}
+                    fullWidth
+                    onClick={handleButtonClick}
+                >
+                <span>
+                    {gallery.gallery +
+                    ' (' +
+                    (!gallery.isPrivate ? 'public' : 'private') +
+                    ') - ' +
+                    (galleryArtWorks == null ? 0 : galleryArtWorks.length + ' items')}
+                </span>
+                    {isGalleryButtonSelected && <CheckCircleIcon className={classes.checkboxIcon} />}
                 </Button>
             </Grid>
         );
     };
-
 
     return (
         <>
@@ -1258,11 +1306,7 @@ const SearchArtworks = ({isLoading, totalPages, searchedArtworks, filters, onFil
                                             {userGalleries.map((gallery) => (
                                                 <GalleryButton gallery={gallery} setIsAddModalChildOpen={setIsAddModalChildOpen} />
                                             ))}
-                                            {/*artworkId: artworkId,*/}
-                                            {/*gallery: galleryName,*/}
-                                            {/*image:image,*/}
-                                            {/*isPrivate:isPrivate,*/}
-                                            {/*galleryDescription:galleryDescription,*/}
+
                                         </Grid>
                                     </DialogContentText>
                                 </DialogContent>

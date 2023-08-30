@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import "./SearchArtworks.css";
+import "../css/user-profile.css";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Tab from '@mui/material/Tab';
@@ -27,6 +27,14 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import DialogActions from "@mui/material/DialogActions";
 import saveGalleryIntoDataBase from "../api/saveGalleryApi";
+import Slide from "@mui/material/Slide";
+import deleteArtworkFromGallery from "../api/deleteArtworkFromGalleryApi";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="down" ref={ref} {...props} />;
+});
 
 const UserProfile = function () {
     const history = useHistory();
@@ -39,7 +47,11 @@ const UserProfile = function () {
     const [galleryDescription, setGalleryDescription] = useState("");
     const [galleryPrivate, setGalleryPrivate] = useState(false);
     const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
+    const [addedArtworkToGalleryUP, setAddedArtworkToGalleryUP] = useState("");
     const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
+    const [addedArtworkImageToGalleryUP, setAddedArtworkImageToGalleryUP] = useState("");
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [userGalleries, setUserGalleries] = useState([]);
 
     const handleChange = async (event, newValue) => {
         setValue(newValue);
@@ -311,7 +323,7 @@ const UserProfile = function () {
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -333,7 +345,7 @@ const UserProfile = function () {
                                     {hoveredCard === artwork.artworkId && (
                                         <div className="icon-container">
                                             <AddCircleIcon sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                           className="hover-icon"/>
+                                                           className="hover-icon" onClick={() => toggleAddModal(artwork, artwork.image)}/>
                                             <FavoriteIcon onClick={() => handleFavoriteClick(artwork)} sx={{
                                                 fontSize: "10px",
                                                 height: "36px",
@@ -380,7 +392,7 @@ const UserProfile = function () {
             return;
         }
         try {
-            const response = await saveGalleryIntoDataBase(addedArtworkToGallery, galleryName, addedArtworkImageToGallery, galleryDescription, galleryPrivate);
+            const response = await saveGalleryIntoDataBase(addedArtworkToGalleryUP, galleryName, addedArtworkImageToGalleryUP, galleryDescription, galleryPrivate);
         } catch (err) {
             console.error(err);
         }
@@ -401,12 +413,110 @@ const UserProfile = function () {
         setIsAddModalChildOpen(!isAddModalChildOpen);
     };
 
+    const toggleAddModal = async (artwork, image) => {
+        if(localStorage.getItem('loggedInUser')){
+            setAddedArtworkToGalleryUP(artwork);
+            setAddedArtworkImageToGalleryUP(image);
+            setIsAddModalOpen(!isAddModalOpen);
+            const response = await getGalleries();
+            setUserGalleries(response.galleries);
+        }
+    };
+
+    const useStyles = makeStyles((theme) => ({
+        customButton: {
+
+            maxWidth: '750px',
+            minHeight: '55px',
+            minWidth: '550px',
+            display: 'flex',
+            backgroundImage: (props) => !props.isGalleryButtonSelected ? `url(${props.image})` : 'none', // Apply background image if not selected
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: "#0a72cc",
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'white', // Customize the text color as needed
+            fontSize: '1rem', // Customize the font size as needed
+            fontWeight: 'bold', // Customize the font weight as needed
+            cursor: 'pointer', // Add a pointer cursor to indicate interactivity
+            border: 'none', // Remove the default button border
+            padding: theme.spacing(2), // Adjust padding as needed
+            '&:focus': {
+                outline: 'none', // Remove the default focus outline
+            },
+        },
+        selectedButton: {
+            backgroundImage: 'none', // Remove background image
+            backgroundColor: theme.palette.success.main,
+            '&:hover': {
+                backgroundColor: theme.palette.success.dark,
+            },
+        },
+        checkboxIcon: {
+            marginLeft: theme.spacing(1),
+        },
+    }));
+
+    const GalleryButton = ({ gallery, setIsAddModalChildOpen }) => {
+        const [isGalleryButtonSelected, setIsGalleryButtonSelected] = useState(false);
+        const [galleryArtWorks, setGalleryArtWorks] = useState([]);
+        const classes = useStyles({ image: gallery.image, isGalleryButtonSelected });
+
+        useEffect(() => {
+            setGalleryArtWorks(gallery.artworks);
+        }, [isGalleryButtonSelected]);
+
+        const handleButtonClick = async () => {
+            setIsGalleryButtonSelected(prevState => !prevState);
+
+            try {
+                if (!isGalleryButtonSelected) {
+                    const response = await saveGalleryIntoDataBase(addedArtworkToGalleryUP, gallery.gallery, gallery.image, gallery.galleryDescription, gallery.isPrivate);
+                    let elementPos = gallery.artworks.map(function(x) {return x.artworkId.toLocaleLowerCase(); }).indexOf(addedArtworkToGalleryUP.artworkId.toLocaleLowerCase());
+                    if (elementPos == -1) {
+                        setGalleryArtWorks(updatedArtworks => [...updatedArtworks, addedArtworkToGalleryUP]);
+                    }
+                } else {
+                    const response = await deleteArtworkFromGallery(addedArtworkToGalleryUP.artworkId, gallery._id);
+                    setGalleryArtWorks(updatedArtworks =>
+                        updatedArtworks.filter(artwork => artwork.artworkId.toLocaleLowerCase() !== addedArtworkToGalleryUP.artworkId.toLocaleLowerCase())
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        return (
+            <Grid item xs={8}>
+                <Button
+                    className={`${classes.customButton} ${isGalleryButtonSelected && classes.selectedButton}`}
+                    fullWidth
+                    onClick={handleButtonClick}
+                >
+                <span>
+                    {gallery.gallery +
+                    ' (' +
+                    (!gallery.isPrivate ? 'public' : 'private') +
+                    ') - ' +
+                    (galleryArtWorks == null ? 0 : galleryArtWorks.length + ' items')}
+                </span>
+                    {isGalleryButtonSelected && <CheckCircleIcon className={classes.checkboxIcon} />}
+                </Button>
+            </Grid>
+        );
+    };
+
+
 
     return (
         <Grid container spacing={2}
                   direction="row"
                   justifyContent="center"
-                  alignItems="center">
+                  alignItems="center" className={"userProfile"}>
         <Grid item xs={12}>
             <Typography variant="h6" sx={{marginTop:'100px',display: 'flex',
                 justifyContent:"center",
@@ -442,10 +552,10 @@ const UserProfile = function () {
             <Box sx={{width: '100%', typography: 'body1'}}>
                 <TabContext sx={{width: '80%', typography: 'body1'}} value={value}>
                     <Box sx={{borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'center'}}>
-                        <TabList onChange={handleChange}>
-                            <Tab label="Likes" value="1"/>
-                            <Tab label="Public Galleries" value="2"/>
-                            <Tab label="Private Galleries" value="3"/>
+                        <TabList onChange={handleChange} >
+                            <Tab label="Likes" value="1" className={"navbarElement"}/>
+                            <Tab label="Public Galleries" value="2" className={"navbarElement"}/>
+                            <Tab label="Private Galleries" value="3" className={"navbarElement"}/>
                         </TabList>
                     </Box>
                     <Box sx={{borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'center'}}>
@@ -460,6 +570,57 @@ const UserProfile = function () {
                         </TabPanel>
                     </Box>
                 </TabContext>
+
+                <Dialog
+                    sx={{top: '-40%', '& .MuiBackdrop-root': {opacity: '0.9'}}}
+                    open={isAddModalOpen}
+                    TransitionComponent={Transition}
+                    keepMounted
+                    onClose={() => setIsAddModalOpen(!isAddModalOpen)}
+                    aria-describedby="alert-dialog-slide-description"
+                >
+                    <DialogTitle>{"Add to gallery"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-slide-description">
+                            <Button style={{
+                                maxWidth: '750px',
+                                minHeight: '55px',
+                                minWidth: '550px',
+                                display: 'flex',
+                                justifyContent: 'left',
+                                alignItems: "center",
+                                marginBottom: "20px",
+                                backgroundColor: "#0a72cc",
+                            }} fullWidth={true} variant="contained"
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        setIsAddModalChildOpen(!isAddModalChildOpen);
+                                    }}>CREATE NEW
+                                GALLERY</Button>
+                            <Grid container spacing={2}>
+                                {userGalleries.map((gallery) => (
+                                    <GalleryButton gallery={gallery} setIsAddModalChildOpen={setIsAddModalChildOpen} />
+                                ))}
+
+                            </Grid>
+                        </DialogContentText>
+                    </DialogContent>
+                    {/*<DialogActions>*/}
+                    <Button style={{
+                        border: '2px solid black',
+                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        borderColor: '#2196F3',
+                        color: 'dodgerblue',
+                        maxWidth: '75px',
+                        minWidth: '55px',
+                        marginLeft: '25px',
+                        marginTop: '25px',
+                        marginBottom: '30px',
+                    }} variant="outlined"
+                            onClick={() => setIsAddModalOpen(!isAddModalOpen)}>Close</Button>
+                    {/*</DialogActions>*/}
+                </Dialog>
                 <Dialog
                     sx={{top: '-5%', '& .MuiBackdrop-root': {opacity: '0.9'}}}
                     open={isAddModalChildOpen}
@@ -528,7 +689,7 @@ const UserProfile = function () {
                             </Grid>
                             <Grid item xs={4}>
                                 <Button  style={{backgroundColor: "#0a72cc", fontSize: '.875rem'}}     variant="contained"
-                                        onClick={handleCreateGallerySubmit}>
+                                         onClick={handleCreateGallerySubmit}>
                                     CREATE GALLERY
                                 </Button>
                             </Grid>

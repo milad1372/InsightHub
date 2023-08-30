@@ -45,9 +45,6 @@ const useStyles = makeStyles((theme) => ({
 const Gallery = function () {
     const [value, setValue] = React.useState(1);
     const [galleryArtworks, setGalleryArtworks] = useState([]);
-    const [currentGalleryIsPrivate, setCurrentGalleryIsPrivate] = useState(true);
-    const [currentGalleryName, setCurrentGalleryName] = useState("");
-    const [currentGalleryDescription, setCurrentGalleryDescription] = useState("");
     const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
     const [galleryName, setGalleryName] = useState("");
     const [galleryDescription, setGalleryDescription] = useState("");
@@ -55,18 +52,20 @@ const Gallery = function () {
     const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
     const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
     const [galleryImage, setGalleryImage] = useState("");
+    const [updatingGallery, setUpdatingGallery] = useState(false);
 
     const location = useLocation();
-    const {galleryData} = location.state || {};
+    let {galleryData} = location.state || {};
     const classes = useStyles();
     useEffect(() => {
-        console.log('galleryData: ', galleryData);
-        setGalleryArtworks(galleryData.artworks);
-        setCurrentGalleryIsPrivate(galleryData.isPrivate);
-        setCurrentGalleryName(galleryData.gallery);
-        setCurrentGalleryDescription(galleryData.galleryDescription);
-    },);
-
+        if (!updatingGallery) {
+            console.log('galleryData: ', galleryData);
+            setGalleryArtworks(galleryData.artworks);
+            setGalleryPrivate(galleryData.isPrivate);
+            setGalleryName(galleryData.gallery);
+            setGalleryDescription(galleryData.galleryDescription);
+        }
+    }, [galleryData, updatingGallery]);
 
     const Artworks = (() => {
         const [hoveredCard, setHoveredCard] = useState(null);
@@ -194,35 +193,38 @@ const Gallery = function () {
 
 
     const handleCreateNewGalleryCardClick = (event) => {
-        setGalleryPrivate(galleryData.isPrivate);
-        setGalleryName(galleryData.gallery);
-        setGalleryImage(galleryData.image);
-        setGalleryDescription(galleryData.galleryDescription);
         setIsAddModalChildOpen(!isAddModalChildOpen);
     }
 
     const handleUpdateGallery = async () => {
+        setUpdatingGallery(false);
         let gallery = {
+            _id:galleryData._id,
             gallery: galleryName,
             image: galleryImage,
             artworks: galleryArtworks,
             galleryDescription: galleryDescription,
             isPrivate: galleryPrivate
         };
-        const response = await updateGalleryFromDataBase(gallery).then(() => {
-            console.log("name:", gallery.gallery);
-            setCurrentGalleryIsPrivate(gallery.isPrivate);
-            setCurrentGalleryName("gallery.gallery"); // Use gallery.gallery here
-            console.log("name:", currentGalleryName);
-            setCurrentGalleryDescription(gallery.galleryDescription); // Shouldn't this be gallery.galleryDescription?
-        });
+        const response = await updateGalleryFromDataBase(gallery);
+        const response1 = await getGalleries();
+        const filteredGalleries = response1.galleries.filter((gallery) => gallery._id == galleryData._id)[0];
+        galleryData=filteredGalleries;
+        console.log("name:", filteredGalleries.gallery);
+        console.log("filteredGalleries:", filteredGalleries);
+        setGalleryPrivate(filteredGalleries.isPrivate);
+        setGalleryName(filteredGalleries.gallery);
+        console.log("galleryDescription:", filteredGalleries.galleryDescription);
+        setGalleryDescription(filteredGalleries.galleryDescription);
+        console.log("galleryDescription1:", galleryDescription);
 
         setIsAddModalChildOpen(!isAddModalChildOpen);
+        setUpdatingGallery(true);
     }
 
 
     const handleDeleteGallery = async () => {
-        const response = await deleteGalleryFromDataBase(currentGalleryName);
+        const response = await deleteGalleryFromDataBase(galleryName);
         window.location.href = '/UserProfile';
     }
 
@@ -242,7 +244,7 @@ const Gallery = function () {
 
                 <Grid item xs={12}>
                     <Typography level="h3" style={{fontWeight: 'bold'}}>
-                        {currentGalleryName}
+                        {galleryName}
                     </Typography>
                 </Grid>
                 <Grid item xs={3}>
@@ -250,7 +252,7 @@ const Gallery = function () {
                         <FaceIcon/> Curated by @{localStorage.getItem('loggedInUser')}
                     </Typography>
                 </Grid>
-                {currentGalleryIsPrivate ? <><Grid item xs={2}>
+                {galleryPrivate ? <><Grid item xs={2}>
                         <Typography level="body-sm">
                             <><LockIcon/> Private gallery</>
                         </Typography>

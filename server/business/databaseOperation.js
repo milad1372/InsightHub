@@ -8,12 +8,11 @@ module.exports = {
     saveGallery: async function (gallery, artwork, image, galleryDescription, user, isPrivate) {
         let newArtworks = [];
         let db_connect = dbo.getDb();
-
         let galleryFromDatabase = await this.getGalleryFromDatabaseByGalleryName(gallery, user);
         if (galleryFromDatabase != null && galleryFromDatabase != "" && galleryFromDatabase != undefined) {
             newArtworks = galleryFromDatabase.artworks;
             const filterArtworks = newArtworks.filter((artworkC) => artworkC.artworkId == artwork.artworkId);
-            filterArtworks.length == 0 ? newArtworks.push(artwork) : newArtworks;
+            filterArtworks.length == 0 && artwork!=null && artwork!= ""? newArtworks.push(artwork) : newArtworks;
 
             let newValue = {$set: {artworks: newArtworks}};
             const filter = {"gallery": {$regex: new RegExp(gallery, "i")}, user: user};
@@ -26,7 +25,7 @@ module.exports = {
                 return false;
             }
         } else {
-            newArtworks.push(artwork);
+            artwork!=null && artwork!= ""?newArtworks.push(artwork):[];
             let galleryFroSavingIntoDatabase = {
                 gallery: gallery,
                 image: image,
@@ -123,6 +122,26 @@ module.exports = {
         }
     },
 
+    deleteArtworkFromGallery: async function (galleryId, artworkId, user) {
+        let newArtworks = [];
+        let db_connect = dbo.getDb();
+
+        let galleryFromDatabase = await this.getGalleryFromDatabaseById(galleryId, user);
+        if (galleryFromDatabase != null && galleryFromDatabase != "" && galleryFromDatabase != undefined) {
+            newArtworks = galleryFromDatabase.artworks;
+            const updatedArtworks = newArtworks.filter(artwork => artwork.artworkId.toLocaleLowerCase() !== artworkId.toLocaleLowerCase());
+            let newValue = {$set: {artworks: updatedArtworks}};
+            const filter = {"_id": ObjectId(galleryId), user: user};
+            try {
+                let res = await db_connect.collection("galleryCollection").findOneAndUpdate(filter, newValue, {returnDocument: "after"});
+                console.log("1 gallery updated: ", res);
+                return true;
+            } catch (err) {
+                console.error(`Something went wrong: ${err}`);
+                return false;
+            }
+        }
+    },
 
     updateGallery: async function (galleryNew, user) {
         let db_connect = dbo.getDb();
@@ -132,7 +151,7 @@ module.exports = {
                 galleryDescription: galleryNew.galleryDescription,
                 user: user,
                 isPrivate: galleryNew.isPrivate}};
-            const filter = {"gallery": {$regex: new RegExp(galleryNew, "i")}, user: user};
+            const filter = { "_id": ObjectId(galleryNew._id)};
             try {
                 let res = await db_connect.collection("galleryCollection").findOneAndUpdate(filter, newValue, {returnDocument: "after"});
                 console.log("1 gallery updated: ", res);
@@ -175,6 +194,18 @@ module.exports = {
         let existingGallery;
         existingGallery = await db_connect.collection('galleryCollection').findOne({
             "gallery": {$regex: new RegExp(gallery, "i")},
+            user: user
+        });
+        return existingGallery;
+    },
+
+
+    getGalleryFromDatabaseById: async function (Id, user) {
+        console.log(Id)
+        let db_connect = dbo.getDb();
+        let existingGallery;
+        existingGallery = await db_connect.collection('galleryCollection').findOne({
+            "_id": ObjectId(Id),
             user: user
         });
         return existingGallery;
