@@ -8,6 +8,7 @@ const Max_Records = process.env.Max_Records;
 const Sort_Order = process.env.Sort_Order;
 const Sort_Field = process.env.Sort_Field;
 const Base_URL_For_Europeana = process.env.Base_URL_For_Europeana;
+const yakeURL = "http://3.138.179.7:5000/yake/";
 
 
 module.exports = {
@@ -33,6 +34,30 @@ module.exports = {
         } catch (error) {
             console.error("Error retrieving data from API:", error);
             return null;
+        }
+    },
+    
+    retrieveKeywordsFromYAKE: async function (title) {
+        try {
+            const response = await axios.post(yakeURL, {
+                language: "en",
+                max_ngram_size: 2,
+                number_of_keywords: 5,
+                text: title
+            }, {
+                headers: {
+                    "accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            const keywords = response.data ? response.data.map(keywordObj => keywordObj.ngram) : [];
+        // console.log(`YAKE API response for title "${title}":`, keywords);
+        // console.log("YAKE API full response:", response.data);
+        return keywords;
+        } catch (error) {
+            console.error("Error retrieving keywords from YAKE:", error);
+            return [];
         }
     }
 };

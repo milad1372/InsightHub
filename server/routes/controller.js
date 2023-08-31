@@ -224,6 +224,13 @@ recordRoutes.route("/getLikedArtworksForUser").post(function (request, response)
 
 });
 
+recordRoutes.route("/getKeywords").post(async function (request, response) {
+    const title = request.body.title;
+    console.log(`Received title for keyword extraction: "${title}"`);
+    const keywords = await apiCall.retrieveKeywordsFromYAKE(title);
+    console.log(`Extracted keywords for title "${title}":`, keywords);
+    response.status(200).send(keywords);
+});
 
 
 module.exports = recordRoutes;
