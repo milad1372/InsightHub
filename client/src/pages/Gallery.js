@@ -287,7 +287,7 @@ const Gallery = function () {
                   spacing={1}
                   direction="row"
             >
-                <Grid item sx={12} style={{paddingLeft: '150px'}}>{galleryArtworks.length} ITEM</Grid>
+                <Grid item sx={12} style={{paddingLeft: '150px'}}>{galleryArtworks.length>1?"ITEMS": "ITEM"}</Grid>
                 <Grid item xs={12} style={{paddingLeft: '120px'}}>
                     <Artworks/>
                 </Grid>

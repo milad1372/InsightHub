@@ -16,6 +16,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
 import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
+import TimelineWithLabels  from "../components/TimelineWithLabels";
 import { useHistory } from 'react-router-dom';
 import Icon from "@mui/material/Icon";
 import Dialog from "@mui/material/Dialog";
@@ -31,6 +32,7 @@ import Slide from "@mui/material/Slide";
 import deleteArtworkFromGallery from "../api/deleteArtworkFromGalleryApi";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import Chart from 'chart.js';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="down" ref={ref} {...props} />;
@@ -79,6 +81,24 @@ const UserProfile = function () {
         const [showProgressbar, setShowProgressbar] = useState(false);
 
         const handleCardClick = (gallery, event) => {
+            const target = event.target;
+            let currentElement = target;
+            let isInsideTimeChart = false;
+            while (currentElement) {
+                if (currentElement.classList.contains('visualization-element-for-galley')) {
+                    isInsideTimeChart = true;
+                    break;
+                }
+                currentElement = currentElement.parentElement;
+            }
+            if (isInsideTimeChart) {
+                return;
+            }
+            console.log("list: ",event.target.classList)
+            if (event.target.classList.contains('react-calendar-timeline ')) {
+                // Clicked on TimelineWithTags, do not proceed with handleCardClick
+                return;
+            }
             event.preventDefault();
             history.push('/Gallery', { galleryData: gallery });
         }
@@ -106,7 +126,15 @@ const UserProfile = function () {
                     </div>
                 ) : (
                     <>
-                        {userPublicGalleries.map((gallery) => (
+                    {userPublicGalleries.map((gallery) => {
+                        const timelineData = [];
+                        gallery.artworks.forEach((artwork) => {
+                            timelineData.push({
+                                query: artwork.query,
+                                addTimeStamp: artwork.addTimeStamp,
+                            });
+                        });
+                        return (
                             <Card
                                 key={gallery.gallery}
                                 className="artwork-card-grid"
@@ -136,11 +164,15 @@ const UserProfile = function () {
                                 )}
                                 {/* Card body */}
                                 <Card.Body>
-                                    <Card.Title>{gallery.artworks==null?0:gallery.artworks.length + ' items'}</Card.Title>
+                                    <Card.Title>{gallery.artworks == null ? 0 : gallery.artworks.length + ' items'}</Card.Title>
                                     <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
+                                        <div>
+                                            <TimelineWithLabels  timelineData={timelineData} />
+                                        </div>
                                 </Card.Body>
                             </Card>
-                        ))}
+                    );
+                    })}
 
                         {/* Add the "Create new gallery" card here */}
                         <Card key={"createGal"} className="artwork-card-grid" onClick={(event) => handleCreateNewGalleryCardClick(event)}>
@@ -192,7 +224,15 @@ const UserProfile = function () {
                     </div>
                 ) : (
                     <>
-                        {userPrivateGalleries.map((gallery) => (
+                    {userPrivateGalleries.map((gallery) => {
+                            const timelineData = [];
+                            gallery.artworks.forEach((artwork) => {
+                            timelineData.push({
+                            query: artwork.query,
+                            addTimeStamp: artwork.addTimeStamp,
+                        });
+                        });
+                            return (
                             <Card
                                 key={gallery.gallery}
                                 className="artwork-card-grid"
@@ -224,9 +264,14 @@ const UserProfile = function () {
                                 <Card.Body>
                                     <Card.Title>{gallery.artworks==null?0:gallery.artworks.length + ' items'}</Card.Title>
                                     <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
+                                        <div>
+                                            <TimelineWithLabels  timelineData={timelineData} />
+                                        </div>
+
                                 </Card.Body>
                             </Card>
-                        ))}
+                    );
+                    })}
 
                         {/* Add the "Create new gallery" card here */}
                         <Card key={"createGal"} className="artwork-card-grid" onClick={(event) => handleCreateNewGalleryCardClick(event)}>

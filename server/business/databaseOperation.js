@@ -5,8 +5,10 @@ let ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
 
-    saveGallery: async function (gallery, artwork, image, galleryDescription, user, isPrivate) {
+    saveGallery: async function (gallery, artwork, image, galleryDescription, user, isPrivate, query) {
         let newArtworks = [];
+        artwork.query = query;
+        artwork.addTimeStamp = new Date();
         let db_connect = dbo.getDb();
         let galleryFromDatabase = await this.getGalleryFromDatabaseByGalleryName(gallery, user);
         if (galleryFromDatabase != null && galleryFromDatabase != "" && galleryFromDatabase != undefined) {
@@ -160,14 +162,6 @@ module.exports = {
                 console.error(`Something went wrong: ${err}`);
                 return false;
             }
-    },
-
-
-    getTagFromDatabaseByTagId: async function (tagId) {
-        let db_connect = dbo.getDb();
-        let existingTag;
-        existingTag = await db_connect.collection('tagCollection').findOne({"_id": ObjectId(tagId)});
-        return existingTag;
     },
 
     getGalleries: async function (user) {

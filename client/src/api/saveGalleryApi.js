@@ -18,7 +18,8 @@ const saveGalleryIntoDataBase = async function (artwork, galleryName, image,gall
             image:image,
             isPrivate:isPrivate,
             galleryDescription:galleryDescription,
-            user: localStorage.getItem('loggedInUser')
+            user: localStorage.getItem('loggedInUser'),
+            query: localStorage.getItem("currentQuery")
         })
     };
     const response = await fetch(mainURL + `saveGalleryIntoDataBase`, requestOptions).then(function (response) {

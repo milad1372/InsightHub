@@ -68,7 +68,8 @@ recordRoutes.route("/saveGalleryIntoDataBase").post(async function (request, res
     let isPrivate = request.body.isPrivate;
     let galleryDescription = request.body.galleryDescription;
     let user = request.body.user.trim().toLowerCase();
-    await databaseOperations.saveGallery(gallery, artwork, image, galleryDescription, user,isPrivate).then(function (isSavedSuccessful) {
+    let query = request.body.query.trim();
+    await databaseOperations.saveGallery(gallery, artwork, image, galleryDescription, user,isPrivate, query).then(function (isSavedSuccessful) {
         console.log("is gallery save Successful: ", isSavedSuccessful);
             if (isSavedSuccessful) {
                 response.status(200).send({
