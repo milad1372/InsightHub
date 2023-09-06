@@ -110,6 +110,7 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                                         <div>
                                             <form onSubmit={handleFormSubmit} className="ml-auto">
                                                 <TextField
+                                                    autoComplete="off"
                                                     placeholder="Search 50+ million items"
                                                     variant="outlined"
                                                     fullWidth
