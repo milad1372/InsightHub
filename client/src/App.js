@@ -15,6 +15,7 @@ import {Container, Row} from "react-bootstrap";
 import LoginForm from "./components/LoginForm";
 import UserProfile from "./pages/UserProfile";
 import Gallery from "./pages/Gallery";
+import Homepage from "./components/HomePage";
 
 const httpLink = createHttpLink({
     uri: "/graphql",
@@ -75,6 +76,7 @@ const App = () => {
                 </NavbarWrapper>
 
                 <Switch>
+                    <Route exact path="/homepage" component={Homepage} />
                     <Route
                         exact
                         path="/"

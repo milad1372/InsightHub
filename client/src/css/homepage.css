@@ -1,0 +1,51 @@
+.homepage-container {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: space-between;
+    background: 
+        linear-gradient(rgba(20, 68, 126, 0.964), rgba(51, 143, 255, 0.5)), /* Blue overlay */
+        url('./../img/background.png');
+    background-size: cover; 
+    background-repeat: no-repeat; 
+    background-position: center;
+    color: white; /* Making text color white */
+}
+
+.searchbox-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+p {
+    margin-bottom: 40px;
+    font-size: 1.2em;
+}
+
+footer {
+    background-color: #eee;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.homepage-container::after {
+    content: "";
+    background-image: url('../img/funded-EU.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: absolute;
+    right: 8em; /* Adjust as needed */
+    bottom: 3em; /* Adjust as needed */
+    width: 20em; /* Adjust based on the size you want */
+    height: 10em; /* Adjust based on the size you want */
+    z-index: 2; /* Ensure it's above other content */
+}

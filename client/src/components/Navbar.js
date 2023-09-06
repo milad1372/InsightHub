@@ -169,7 +169,7 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                     <Navbar.Brand as={Link} to="/">
                         <FontAwesomeIcon icon={faBars}/>
                     </Navbar.Brand>
-                    <Navbar.Brand as={Link} to="/">
+                    <Navbar.Brand as={Link} to="/Homepage">
                         <img src="./europeana.svg" alt="Europeana"/>
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="navbar"/>
