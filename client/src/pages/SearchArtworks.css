@@ -476,3 +476,16 @@ data-and-buttons-wrapper [class^=icon-] {
   font-weight: 600;
   text-transform: uppercase;
 }
+
+.green-button {
+  background-color: green !important; 
+  border-color: green !important;
+}
+
+.Saved-label {
+  color: green;
+}
+
+.Saved-label-text {
+  color: green;
+}
