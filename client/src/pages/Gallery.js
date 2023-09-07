@@ -1,23 +1,13 @@
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import "./SearchArtworks.css";
+import "../css/gallery.css";
 import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import React, {forwardRef, useEffect, useImperativeHandle, useState} from "react";
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from "react";
 import {Card, Container, Row} from "react-bootstrap";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import getGalleries from "../api/getGalleriesApi";
-import getUserLikedArtworks from "../api/getUserLikedArtworksApi";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
-import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
 import {useLocation} from 'react-router-dom';
-import getRecords from "../api/getRecordsApi";
 import {makeStyles} from '@mui/styles';
 import LockIcon from '@mui/icons-material/Lock';
 import FaceIcon from '@mui/icons-material/Face';
@@ -43,7 +33,6 @@ const useStyles = makeStyles((theme) => ({
 
 
 const Gallery = function () {
-    const [value, setValue] = React.useState(1);
     const [galleryArtworks, setGalleryArtworks] = useState([]);
     const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
     const [galleryName, setGalleryName] = useState("");
@@ -53,6 +42,18 @@ const Gallery = function () {
     const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
     const [galleryImage, setGalleryImage] = useState("");
     const [updatingGallery, setUpdatingGallery] = useState(false);
+    const [selectedKeywords, setSelectedKeywords] = useState({});
+    const [availableColors, setAvailableColors] = useState([
+        "#e41a1c",
+        "#377eb8",
+        "#4daf4a",
+        "#984ea3",
+        "#ff7f00",
+        "#ffff33",
+        "#a65628",
+        "#f781bf",
+        "#999999"
+    ]);
 
     const location = useLocation();
     let {galleryData} = location.state || {};
@@ -85,7 +86,7 @@ const Gallery = function () {
             let currentElement = target;
             let isInsideDataAndButtonsWrapper = false;
             while (currentElement) {
-                if (currentElement.classList.contains('data-and-buttons-wrapper') || currentElement.classList.contains('MuiSvgIcon-root')) {
+                if (currentElement.classList.contains('data-and-buttons-wrapper') || currentElement.classList.contains('MuiSvgIcon-root') || currentElement.classList.contains('bullet-points')) {
                     isInsideDataAndButtonsWrapper = true;
                     break;
                 }
@@ -99,8 +100,30 @@ const Gallery = function () {
             window.open(link, "_blank");
         };
 
+        const handleKeywordClick = useCallback((keyword) => {
+            const currentSelected = {...selectedKeywords};
+
+            if (currentSelected[keyword]) {
+                const colorToReturn = currentSelected[keyword];
+                setAvailableColors(prev => [...prev, colorToReturn]);
+                delete currentSelected[keyword];
+            } else {
+                if (availableColors.length === 0) {
+                    alert("You can't select more keywords!");
+                    return;
+                }
+
+                const colorToAssign = availableColors[0];
+                currentSelected[keyword] = colorToAssign;
+                setAvailableColors(prev => prev.slice(1));
+            }
+
+            setSelectedKeywords(currentSelected);
+        }, [selectedKeywords, availableColors]);
+
 
         return (
+            <div className={"gallery-container"}>
             <Container className="card-container-grid mx-0">
                 {showProgressbar ?
                     <div className={'progressbarBox'}>
@@ -120,40 +143,76 @@ const Gallery = function () {
                             }}/>
                     </div>
                     : galleryArtworks.map((artwork) => (
-                        <Card key={artwork.artworkId} className="artwork-card-grid"
-                              onClick={(event) => handleCardClick(artwork.artworkId, event)}
-                              onMouseEnter={() => handleCardHover(artwork.artworkId)}
-                              onMouseLeave={handleCardLeave}>
-                            {/* Card image */}
-                            {artwork.image && artwork.image !== "No image available" ? (
-                                <div className={'temp'}>
-                                    <Card.Img className="card-image-grid"
-                                              src={artwork.image}
-                                              alt={`The image for ${artwork.title}`}
-                                              variant="top"
-                                    />
 
-                                </div>
-                            ) : (
-                                <div>
-                                    <Card.Img className="card-image-grid"
-                                              src="./url.png"
-                                              alt="Fallback"
-                                              variant="top"
-                                    />
 
-                                </div>
-                            )}
-                            {/* Card body */}
-                            <Card.Body>
-                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
-                                <Card.Text>{artwork.dcCreator}</Card.Text>
-                                <Card.Text>{artwork.dataProvider}</Card.Text>
-                                {/* rest of the code */}
-                            </Card.Body>
-                        </Card>
+                        <div className={"gallery-card"}>
+                            <Card key={artwork.artworkId} className="artwork-card-grid"
+                                  onClick={(event) => handleCardClick(artwork.artworkId, event)}
+                                  onMouseEnter={() => handleCardHover(artwork.artworkId)}
+                                  onMouseLeave={handleCardLeave}>
+                                <Grid container >
+                                    <Grid item xs={6} md={8}>
+                                        <div className="card-content-wrapper">
+                                            {/* Card image */}
+                                            {artwork.image && artwork.image !== "No image available" ? (
+                                                <div className={'temp'}>
+                                                    <Card.Img className="card-image-grid"
+                                                              src={artwork.image}
+                                                              alt={`The image for ${artwork.title}`}
+                                                              variant="top"
+                                                    />
+
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <Card.Img className="card-image-grid"
+                                                              src="./url.png"
+                                                              alt="Fallback"
+                                                              variant="top"
+                                                    />
+
+                                                </div>
+                                            )}
+                                            {/* Card body */}
+                                            <Card.Body>
+                                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
+                                                <Card.Text>{artwork.dcCreator}</Card.Text>
+                                                <Card.Text>{artwork.dataProvider}</Card.Text>
+                                            </Card.Body>
+                                        </div>
+                                    </Grid>
+                                    <Grid item xs={6} md={4}>
+                                        <div className="bullet-points">
+                                            {[...artwork.keywords].map(keyword => (
+                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)}
+                                                     style={{display: 'flex', alignItems: 'center', margin: '2px 0'}}>
+                                                    <div
+                                                        className="circle"
+                                                        style={{
+                                                            background: selectedKeywords[keyword] || 'transparent',
+                                                            border: selectedKeywords[keyword] ? 'none' : '1px solid gray'
+                                                        }}
+                                                    />
+                                                    <span
+                                                        style={{
+                                                            marginLeft: '2px',
+                                                            color: selectedKeywords[keyword] || 'black'
+                                                        }}
+                                                    >
+                                                  {keyword}
+                                                </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Grid>
+                                </Grid>
+
+
+                            </Card>
+                        </div>
                     ))}
             </Container>
+            </div>
         );
     });
 
@@ -168,7 +227,6 @@ const Gallery = function () {
     };
     const handleGalleryPublicChange = (e) => {
         let value = e.target.checked;
-        console.log("check: ", value)
         setGalleryPrivate(value);
     };
 
@@ -183,7 +241,6 @@ const Gallery = function () {
             console.error(err);
         }
         const response = await getGalleries();
-        console.log('galleries', response.galleries)
 
         setGalleryName("");
         setGalleryDescription("");
@@ -199,7 +256,7 @@ const Gallery = function () {
     const handleUpdateGallery = async () => {
         setUpdatingGallery(false);
         let gallery = {
-            _id:galleryData._id,
+            _id: galleryData._id,
             gallery: galleryName,
             image: galleryImage,
             artworks: galleryArtworks,
@@ -209,14 +266,10 @@ const Gallery = function () {
         const response = await updateGalleryFromDataBase(gallery);
         const response1 = await getGalleries();
         const filteredGalleries = response1.galleries.filter((gallery) => gallery._id == galleryData._id)[0];
-        galleryData=filteredGalleries;
-        console.log("name:", filteredGalleries.gallery);
-        console.log("filteredGalleries:", filteredGalleries);
+        galleryData = filteredGalleries;
         setGalleryPrivate(filteredGalleries.isPrivate);
         setGalleryName(filteredGalleries.gallery);
-        console.log("galleryDescription:", filteredGalleries.galleryDescription);
         setGalleryDescription(filteredGalleries.galleryDescription);
-        console.log("galleryDescription1:", galleryDescription);
 
         setIsAddModalChildOpen(!isAddModalChildOpen);
         setUpdatingGallery(true);
@@ -287,8 +340,8 @@ const Gallery = function () {
                   spacing={1}
                   direction="row"
             >
-                <Grid item sx={12} style={{paddingLeft: '150px'}}>{galleryArtworks.length>1?"ITEMS": "ITEM"}</Grid>
-                <Grid item xs={12} style={{paddingLeft: '120px'}}>
+                <Grid item sx={12} style={{paddingLeft: '150px'}}>{galleryArtworks.length > 1 ? "ITEMS" : "ITEM"}</Grid>
+                <Grid item xs={12} style={{paddingLeft: '120px', paddingRight: '50px'}}>
                     <Artworks/>
                 </Grid>
             </Grid>

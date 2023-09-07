@@ -1,17 +1,22 @@
-import React, { useEffect, useRef } from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
-function TimelineWithLabels({ timelineData }) {
+function TimelineWithLabels({ timelineData, galleryId }) { // included galleryId as a prop
     const chartRef = useRef(null);
+    const chartInstanceRef = useRef(null);
 
     useEffect(() => {
-        if (timelineData && timelineData.length) {
-            const ctx = chartRef.current.getContext('2d');
+        const ctx = chartRef.current.getContext('2d');
+console.log(galleryId)
+        if (chartInstanceRef.current) {
+            chartInstanceRef.current.destroy();
+        }
 
+        if (timelineData && timelineData.length) {
             // Sort by timestamp
             timelineData.sort((a, b) => new Date(a.addTimeStamp) - new Date(b.addTimeStamp));
-console.log("time:", timelineData)
+
             // Count the number of artworks for each query
             let counts = timelineData.reduce((p, c) => {
                 let query = c.query.toLowerCase();
@@ -26,7 +31,7 @@ console.log("time:", timelineData)
             const data = Object.values(counts).map(item => item.count);
             const queries = Object.keys(counts);
 
-            new Chart(ctx, {
+            const chartConfig ={
                 type: 'line',
                 data: {
                     labels: labels,
@@ -95,13 +100,25 @@ console.log("time:", timelineData)
                         }
                     }
                 }
-            });
+            };
+            chartInstanceRef.current = new Chart(ctx, chartConfig);
         }
+
+        return () => {
+            if (chartInstanceRef.current) {
+                chartInstanceRef.current.destroy();
+            }
+        };
     }, [timelineData]);
 
     return (
-        <canvas className={"visualization-element-for-galley"} ref={chartRef}></canvas>
+        <canvas className="visualization-element-for-galley" ref={chartRef}></canvas>
     );
 }
 
-export default TimelineWithLabels;
+function arePropsEqual(prevProps, nextProps) {
+    console.log(prevProps.galleryId === nextProps.galleryId)
+    return prevProps.galleryId === nextProps.galleryId;
+}
+
+export default React.memo(TimelineWithLabels, arePropsEqual);

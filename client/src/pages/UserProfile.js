@@ -7,18 +7,16 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import React, {forwardRef, useEffect, useImperativeHandle, useState} from "react";
+import React, {forwardRef, useEffect, useImperativeHandle, useState, useMemo, useCallback} from "react";
 import {Card, Col, Container, Row} from "react-bootstrap";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import getGalleries from "../api/getGalleriesApi";
 import getUserLikedArtworks from "../api/getUserLikedArtworksApi";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import saveLikedArtworkIntoDataBase from "../api/saveLikedArtworksApi";
 import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
 import TimelineWithLabels  from "../components/TimelineWithLabels";
 import { useHistory } from 'react-router-dom';
-import Icon from "@mui/material/Icon";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -32,7 +30,6 @@ import Slide from "@mui/material/Slide";
 import deleteArtworkFromGallery from "../api/deleteArtworkFromGalleryApi";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import makeStyles from "@material-ui/core/styles/makeStyles";
-import Chart from 'chart.js';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="down" ref={ref} {...props} />;
@@ -48,12 +45,23 @@ const UserProfile = function () {
     const [galleryName, setGalleryName] = useState("");
     const [galleryDescription, setGalleryDescription] = useState("");
     const [galleryPrivate, setGalleryPrivate] = useState(false);
-    const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
     const [addedArtworkToGalleryUP, setAddedArtworkToGalleryUP] = useState("");
-    const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
     const [addedArtworkImageToGalleryUP, setAddedArtworkImageToGalleryUP] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [userGalleries, setUserGalleries] = useState([]);
+    const [clickedKeyword, setClickedKeyword] = useState(null);
+    const [selectedKeywords, setSelectedKeywords] = useState({});
+    const [availableColors, setAvailableColors] = useState([
+        "#e41a1c",
+        "#377eb8",
+        "#4daf4a",
+        "#984ea3",
+        "#ff7f00",
+        "#ffff33",
+        "#a65628",
+        "#f781bf",
+        "#999999"
+    ]);
 
     const handleChange = async (event, newValue) => {
         setValue(newValue);
@@ -64,6 +72,18 @@ const UserProfile = function () {
         if (newValue == 2) {
             const response = await getGalleries();
             const filteredGalleries = response.galleries.filter((gallery) => gallery.isPrivate == false);
+            for (const gallery of filteredGalleries) {
+                gallery.timelineData = gallery.artworks.map(artwork => ({
+                    query: artwork.query,
+                    addTimeStamp: artwork.addTimeStamp,
+                }));
+
+                const keywordsSet = new Set();
+                gallery.artworks.forEach(artwork => {
+                    artwork.keywords.forEach(keyword => keywordsSet.add(keyword));
+                });
+                gallery.keywords = [...keywordsSet];
+            }
             setUserPublicGalleries(filteredGalleries);
         }
         if (newValue == 3) {
@@ -77,21 +97,43 @@ const UserProfile = function () {
         setIsAddModalChildOpen(!isAddModalChildOpen);
     }
 
+    const handleKeywordClick = useCallback((keyword) => {
+        const currentSelected = { ...selectedKeywords };
+
+        if (currentSelected[keyword]) {
+            const colorToReturn = currentSelected[keyword];
+            setAvailableColors(prev => [...prev, colorToReturn]);
+            delete currentSelected[keyword];
+        } else {
+            if (availableColors.length === 0) {
+                alert("You can't select more keywords!");
+                return;
+            }
+
+            const colorToAssign = availableColors[0];
+            currentSelected[keyword] = colorToAssign;
+            setAvailableColors(prev => prev.slice(1));
+        }
+
+        setSelectedKeywords(currentSelected);
+    }, [selectedKeywords, availableColors]);
+
+
+
     const PublicGalleris = (() => {
         const [showProgressbar, setShowProgressbar] = useState(false);
-
         const handleCardClick = (gallery, event) => {
             const target = event.target;
             let currentElement = target;
-            let isInsideTimeChart = false;
+            let isInsideTimeChartOrKeywords = false;
             while (currentElement) {
-                if (currentElement.classList.contains('visualization-element-for-galley')) {
-                    isInsideTimeChart = true;
+                if (currentElement.classList.contains('visualization-element-for-galley') || currentElement.classList.contains('bullet-points')) {
+                    isInsideTimeChartOrKeywords = true;
                     break;
                 }
                 currentElement = currentElement.parentElement;
             }
-            if (isInsideTimeChart) {
+            if (isInsideTimeChartOrKeywords) {
                 return;
             }
             console.log("list: ",event.target.classList)
@@ -106,7 +148,7 @@ const UserProfile = function () {
 
 
         return (
-            <Container className="card-container-grid mx-0">
+            <Container className="card-container-grid mx-0 user-profile-grid">
                 {showProgressbar ? (
                     <div className={'progressbarBox'}>
                         <CircularProgress
@@ -127,13 +169,6 @@ const UserProfile = function () {
                 ) : (
                     <>
                     {userPublicGalleries.map((gallery) => {
-                        const timelineData = [];
-                        gallery.artworks.forEach((artwork) => {
-                            timelineData.push({
-                                query: artwork.query,
-                                addTimeStamp: artwork.addTimeStamp,
-                            });
-                        });
                         return (
                             <Card
                                 key={gallery.gallery}
@@ -142,7 +177,7 @@ const UserProfile = function () {
                             >
                                 {/* Card image */}
                                 {gallery.image && gallery.image !== 'No image available' ? (
-                                    <div className={'temp'}>
+                                    <div  className={'temp flex-container'}>
                                         <Card.Img
                                             className="card-image-grid"
                                             src={gallery.image}
@@ -150,9 +185,30 @@ const UserProfile = function () {
                                             variant="top"
                                             style={{ height: '200px' }} // Set a fixed height for the image
                                         />
+                                        <div className="bullet-points">
+                                            {[... gallery.keywords].map(keyword => (
+                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)} style={{ display: 'flex', alignItems: 'center', margin: '2px 0' }}>
+                                                    <div
+                                                        className="circle"
+                                                        style={{
+                                                            background: selectedKeywords[keyword] || 'transparent',
+                                                            border: selectedKeywords[keyword] ? 'none' : '1px solid gray'
+                                                        }}
+                                                    />
+                                                    <span
+                                                        style={{
+                                                            marginLeft: '8px',
+                                                            color: selectedKeywords[keyword] || 'black'
+                                                        }}
+                                                    >
+                                                  {keyword}
+                                                </span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div>
+                                    <div  className={'temp flex-container'}>
                                         <Card.Img
                                             className="card-image-grid"
                                             src="./url.png"
@@ -160,15 +216,25 @@ const UserProfile = function () {
                                             variant="top"
                                             style={{ height: '200px' }} // Set a fixed height for the image
                                         />
+                                        <ul className="bullet-points">
+                                            {[...gallery.keywords].map(keyword => (
+                                                <li key={keyword}>
+                                                    <div
+                                                        className={`circle ${clickedKeyword === keyword ? 'circle-filled' : ''}`}
+                                                        onClick={() => handleKeywordClick(keyword)}
+                                                    ></div>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 )}
                                 {/* Card body */}
                                 <Card.Body>
                                     <Card.Title>{gallery.artworks == null ? 0 : gallery.artworks.length + ' items'}</Card.Title>
                                     <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
-                                        <div>
-                                            <TimelineWithLabels  timelineData={timelineData} />
-                                        </div>
+                                        {/*<div>*/}
+                                        {/*    <TimelineWithLabels galleryId={gallery._id} timelineData={gallery.timelineData} />*/}
+                                        {/*</div>*/}
                                 </Card.Body>
                             </Card>
                     );
@@ -204,7 +270,7 @@ const UserProfile = function () {
 
 
         return (
-            <Container className="card-container-grid mx-0">
+            <Container className="card-container-grid mx-0 user-profile-grid">
                 {showProgressbar ? (
                     <div className={'progressbarBox'}>
                         <CircularProgress
@@ -264,9 +330,9 @@ const UserProfile = function () {
                                 <Card.Body>
                                     <Card.Title>{gallery.artworks==null?0:gallery.artworks.length + ' items'}</Card.Title>
                                     <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
-                                        <div>
-                                            <TimelineWithLabels  timelineData={timelineData} />
-                                        </div>
+                                        {/*<div>*/}
+                                        {/*    <TimelineWithLabels  timelineData={gallery.timelineData} />*/}
+                                        {/*</div>*/}
 
                                 </Card.Body>
                             </Card>
