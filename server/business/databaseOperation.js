@@ -88,19 +88,29 @@ module.exports = {
 
 
     deleteLikedArtwork: async function (artworkId, user) {
-        let newArtworkIds = [];
         let db_connect = dbo.getDb();
 
+        console.log("deleted artworkId: " ,artworkId);
         let userFromDatabase = await this.getUserLikedArtworksFromDatabaseByUserName(user);
-        newArtworkIds = userFromDatabase.artworks;
-        const index1 = newArtworkIds.indexOf(artworkId);
+        const artworkIdToFind = artworkId.toLowerCase().trim();
+        console.log("previouse ArtworkIds length: ", userFromDatabase.artworks.length);
 
-        newArtworkIds.splice(index1, 1);
-        let newValue = {$set: {artworks: newArtworkIds}};
+        let indexToRemove = userFromDatabase.artworks.findIndex(function(el) {
+            return el.artworkId.toLowerCase().trim() === artworkIdToFind;
+        });
+
+        if (indexToRemove !== -1) {
+            userFromDatabase.artworks.splice(indexToRemove, 1);
+        }
+
+        console.log("Index to remove: ", indexToRemove);
+        console.log("newArtworkIds length: ", userFromDatabase.artworks.length);
+
+        let newValue = {$set: {artworks: userFromDatabase.artworks}};
         const filter = {user: user};
         try {
             let res = await db_connect.collection("userLikedArtworksCollection").findOneAndUpdate(filter, newValue, {returnDocument: "after"});
-            console.log("1 user updated: ", res);
+            console.log("1 user updated");
             return true;
         } catch (err) {
             console.error(`Something went wrong: ${err}`);

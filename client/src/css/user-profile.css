@@ -1,96 +1,10 @@
-.userProfile {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-
-}
-
-.userProfile h6{
-    font-size: 2.125rem;
-    line-height: 1.5;
-    font-weight: bold;
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-}
-
-.userProfile navbarElement{
-    border: 0;
-    border-radius: 0;
-    font-size: .875rem;
-    font-weight: 600 !important;
-    line-height: 1 !important;
-    margin-bottom: 0;
-    padding: 1rem;
-    -webkit-text-decoration: none;
-    text-decoration: none;
-    text-transform: none !important;
-}
-
-.userProfile card-container-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 6 columns with equal width */
-    gap: 20px; /* Adjust the space between cards */
-    margin: 0 -10px; /* To account for the margin on individual cards */
-}
-
-.user-profile-grid{
-    padding-left: 50px;
-    padding-right: 50px;
-}
-
-.userProfile artwork-card-grid {
-    min-height: 0;
-    background: #fff;
-    border: 0;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
-    color: #1a1a1a;
-    font-size: 0.875rem;
-    line-height: 1.1875rem;
-    transition: box-shadow 0.25s;
-    text-align: left;
-    position: relative;
-    word-wrap: break-word;
-    box-sizing: border-box;
-    font-family: "Open Sans", "Arial", sans-serif;
-    font-weight: 400;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-}
-
-.userProfile card-image-grid {
-    flex: 1 1 auto;
-    border-radius: 4px 4px 0 0;
-    display: flex;
-    overflow: hidden;
-}
-
-/* Adjust this media query breakpoint as needed */
-@media (max-width: 992px) {
-    .userProfile card-container-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 columns for smaller screens */
-        gap: 10px; /* Adjust the space between cards */
-        margin: 0 -5px; /* Adjust margin for individual cards */
-    }
-
-    .userProfile artwork-card-grid {
-        width: calc(33.333% - 10px); /* Adjust width for 3 columns and margins */
-        /* Other adjustments for smaller screens */
-    }
-
-    /* You can adjust other styles here as needed */
-}
-
-.userProfile artwork-card-grid:hover {
-    cursor: pointer;
-    /*border: 1px solid #555;*/
-    box-shadow: 5px 10px 18px rgba(3, 3, 3, 0.2);
-    z-index: 1;
-    transition: all 0.3s ease-in-out;
+.user-profile-container .card-container-grid {
+    column-count: 5;
+    /*display: 'flex';*/
+    column-gap: 20px !important; /* Adjust the gap between cards as needed */
 }
 
 
-.userProfile artwork-card-grid:hover .icon-container {
-    opacity: 50; /* Show the icons when hovering over the card */
-}
 
 canvas {
     height: 150px !important; /* Adjust as needed */
@@ -99,7 +13,7 @@ canvas {
     display: flex;
     position: relative;
     align-items: center;
-justify-content: space-between;
+    justify-content: space-between;
 }
 
 
@@ -131,5 +45,3 @@ justify-content: space-between;
 .circle-filled {
     background-color: blue;
 }
-
-

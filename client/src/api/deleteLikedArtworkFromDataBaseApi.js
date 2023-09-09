@@ -3,6 +3,7 @@ const Local_Base_URL = "http://localhost:3001/";
 const mainURL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? Local_Base_URL : AWS_Base_URL;
 
 const deleteLikedArtworkFromDataBase = async function (artworkId) {
+    console.log("deleted artwork id:", artworkId)
     let headers = new Headers();
     headers.append('Content-Type', 'application/json');
     headers.append('Accept', 'application/json');

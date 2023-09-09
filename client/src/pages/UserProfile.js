@@ -148,6 +148,7 @@ const UserProfile = function () {
 
 
         return (
+            <div className={"user-profile-container"}>
             <Container className="card-container-grid mx-0 user-profile-grid">
                 {showProgressbar ? (
                     <div className={'progressbarBox'}>
@@ -175,19 +176,37 @@ const UserProfile = function () {
                                 className="artwork-card-grid"
                                 onClick={(event) => handleCardClick(gallery, event)}
                             >
-                                {/* Card image */}
-                                {gallery.image && gallery.image !== 'No image available' ? (
-                                    <div  className={'temp flex-container'}>
-                                        <Card.Img
-                                            className="card-image-grid"
-                                            src={gallery.image}
-                                            alt={`The image for ${gallery.gallery}`}
-                                            variant="top"
-                                            style={{ height: '200px' }} // Set a fixed height for the image
-                                        />
+                                <Grid container >
+                                    <Grid item xs={6} md={8}>
+                                        {gallery.image && gallery.image !== 'No image available' ? (
+                                                <Card.Img
+                                                    className="card-image-grid"
+                                                    src={gallery.image}
+                                                    alt={`The image for ${gallery.gallery}`}
+                                                    variant="top"
+                                                    style={{ height: '200px' }} // Set a fixed height for the image
+                                                />
+                                        ) : (
+                                                <Card.Img
+                                                    className="card-image-grid"
+                                                    src="./url.png"
+                                                    alt="Fallback"
+                                                    variant="top"
+                                                    style={{ height: '200px' }} // Set a fixed height for the image
+                                                />
+
+                                        )}
+                                        <Card.Body>
+                                            <Card.Title>{gallery.artworks == null ? 0 : gallery.artworks.length + ' items'}</Card.Title>
+                                            <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
+
+                                        </Card.Body>
+                                    </Grid>
+                                    <Grid item xs={6} md={4}>
                                         <div className="bullet-points">
-                                            {[... gallery.keywords].map(keyword => (
-                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)} style={{ display: 'flex', alignItems: 'center', margin: '2px 0' }}>
+                                            {[...gallery.keywords].map(keyword => (
+                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)}
+                                                     style={{display: 'flex', alignItems: 'center', margin: '2px 0'}}>
                                                     <div
                                                         className="circle"
                                                         style={{
@@ -197,7 +216,7 @@ const UserProfile = function () {
                                                     />
                                                     <span
                                                         style={{
-                                                            marginLeft: '8px',
+                                                            marginLeft: '2px',
                                                             color: selectedKeywords[keyword] || 'black'
                                                         }}
                                                     >
@@ -206,36 +225,9 @@ const UserProfile = function () {
                                                 </div>
                                             ))}
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div  className={'temp flex-container'}>
-                                        <Card.Img
-                                            className="card-image-grid"
-                                            src="./url.png"
-                                            alt="Fallback"
-                                            variant="top"
-                                            style={{ height: '200px' }} // Set a fixed height for the image
-                                        />
-                                        <ul className="bullet-points">
-                                            {[...gallery.keywords].map(keyword => (
-                                                <li key={keyword}>
-                                                    <div
-                                                        className={`circle ${clickedKeyword === keyword ? 'circle-filled' : ''}`}
-                                                        onClick={() => handleKeywordClick(keyword)}
-                                                    ></div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {/* Card body */}
-                                <Card.Body>
-                                    <Card.Title>{gallery.artworks == null ? 0 : gallery.artworks.length + ' items'}</Card.Title>
-                                    <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
-                                        {/*<div>*/}
-                                        {/*    <TimelineWithLabels galleryId={gallery._id} timelineData={gallery.timelineData} />*/}
-                                        {/*</div>*/}
-                                </Card.Body>
+                                    </Grid>
+                                </Grid>
+
                             </Card>
                     );
                     })}
@@ -257,6 +249,7 @@ const UserProfile = function () {
                     </>
                 )}
             </Container>
+            </div>
         );
     });
 

@@ -385,7 +385,9 @@ const SearchArtworks = ({
 
   const handleFavoriteClick = async (artwork) => {
     if (localStorage.getItem("loggedInUser")) {
-      if (!artwork.isFavorited) {
+      console.log("artwork.liked:", artwork.liked);
+      console.log("artwork.isFavorited:", artwork.isFavorited);
+      if (!(artwork.isFavorited ||artwork.liked)) {
         const response = await saveLikedArtworkIntoDataBase(artwork);
       } else {
         const response = await deleteLikedArtworkFromDataBase(
@@ -396,13 +398,19 @@ const SearchArtworks = ({
 
     let artworkId = artwork.artworkId;
     setArtworkData((prevArtworkData) =>
-      prevArtworkData.map((artwork) =>
-        artwork.artworkId === artworkId
-          ? { ...artwork, isFavorited: !artwork.isFavorited }
-          : artwork
-      )
+        prevArtworkData.map((artwork) =>
+            artwork.artworkId === artworkId
+                ? {
+                  ...artwork,
+                  isFavorited: !artwork.isFavorited,
+                  liked: !artwork.liked,
+                }
+                : artwork
+        )
     );
-    const response = await saveLikedArtworkIntoDataBase(artwork);
+
+    console.log("artwork.liked after:", artwork.liked);
+    console.log("artwork.isFavorited:", artwork.isFavorited);
   };
 
   const ListView = forwardRef((props, ref) => {
@@ -530,11 +538,12 @@ const SearchArtworks = ({
 
                           <span
                             className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                              artwork.isFavorited ? "Liked-label" : "Like-label"
+                                (artwork.isFavorited==true ||artwork.liked) ? "Liked-label" : "Like-label"
                             }`}
                             onClick={() => handleFavoriteClick(artwork)}
                           >
-                            {artwork.isFavorited ? (
+                            {(artwork.isFavorited==true ||artwork.liked) ? (
+
                               <>
                                 <FavoriteIcon
                                   sx={{ fontSize: ".875rem", color: "red" }}
@@ -558,32 +567,6 @@ const SearchArtworks = ({
                             )}
                           </span>
                         </div>
-                        {Auth.loggedIn() && (
-                          <Button
-                            disabled={savedArtworkIds?.some(
-                              (savedArtworkId) =>
-                                savedArtworkId === artwork.artworkId
-                            )}
-                            className={`btn-block btn-info hover-effect ${
-                              savedArtworkIds?.some(
-                                (savedArtworkId) =>
-                                  savedArtworkId === artwork.artworkId
-                              )
-                                ? "green-button"
-                                : ""
-                            }`}
-                            onClick={() => handleSaveArtwork(artwork.artworkId)}
-                          >
-                            <span>
-                              {savedArtworkIds?.some(
-                                (savedArtworkId) =>
-                                  savedArtworkId === artwork.artworkId
-                              )
-                                ? "Saved"
-                                : "Save"}
-                            </span>
-                          </Button>
-                        )}
                       </Card.Body>
                     </Col>
                   </Row>
@@ -670,11 +653,11 @@ const SearchArtworks = ({
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: artwork.isFavorited
+                          color: (artwork.isFavorited ==true||artwork.liked)
                             ? "#fff !important"
                             : "#4d4d4d !important",
-                          backgroundColor: artwork.isFavorited
-                            ? "red !important"
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
                             : "#fff !important",
                         }}
                         className="hover-icon"
@@ -703,11 +686,11 @@ const SearchArtworks = ({
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: artwork.isFavorited
-                            ? "#fff !important"
+                          color: (artwork.isFavorited ==true||artwork.liked)
+                              ? "#fff !important"
                             : "#4d4d4d !important",
-                          backgroundColor: artwork.isFavorited
-                            ? "red !important"
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
                             : "#fff !important",
                         }}
                         className="hover-icon"
@@ -806,11 +789,11 @@ const SearchArtworks = ({
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: artwork.isFavorited
-                            ? "#fff !important"
+                          color: (artwork.isFavorited==true ||artwork.liked)
+                              ? "#fff !important"
                             : "#4d4d4d !important",
-                          backgroundColor: artwork.isFavorited
-                            ? "red !important"
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
                             : "#fff !important",
                         }}
                         className="hover-icon"
@@ -839,11 +822,11 @@ const SearchArtworks = ({
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: artwork.isFavorited
-                            ? "#fff !important"
+                          color: (artwork.isFavorited ==true||artwork.liked)
+                              ? "#fff !important"
                             : "#4d4d4d !important",
-                          backgroundColor: artwork.isFavorited
-                            ? "red !important"
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
                             : "#fff !important",
                         }}
                         className="hover-icon"
@@ -1287,7 +1270,7 @@ const SearchArtworks = ({
       backgroundPosition: "center",
       position: "relative",
       overflow: "hidden",
-      color: "white", // Customize the text color as needed
+      color: "#000", // Customize the text color as needed
       fontSize: "1rem", // Customize the font size as needed
       fontWeight: "bold", // Customize the font weight as needed
       cursor: "pointer", // Add a pointer cursor to indicate interactivity
@@ -1467,6 +1450,7 @@ const SearchArtworks = ({
                         justifyContent: "left",
                         alignItems: "center",
                         marginBottom: "20px",
+                        color: "#000"
                       }}
                       fullWidth={true}
                       onClick={(event) => {

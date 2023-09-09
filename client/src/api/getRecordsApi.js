@@ -1,3 +1,5 @@
+import getUserLikedArtworks from "./getUserLikedArtworksApi";
+
 const AWS_Base_URL = "/api/";
 const Local_Base_URL = "http://localhost:3001/";
 const mainURL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? Local_Base_URL : AWS_Base_URL;
@@ -36,6 +38,12 @@ const getRecords = async function (searchInput, filterQuery, pageNumber) {
         }
 
         const result = await response.json();
+
+        const res = await getUserLikedArtworks();
+        const likedArtwork = (res.likedArtworks && res.likedArtworks.length != 0) ? res.likedArtworks[0].artworks : []
+        const likedArtworkIds = new Set(likedArtwork.map(artwork => artwork.artworkId));
+        console.log("ids: ", likedArtworkIds)
+        console.log("res: ", res)
         let artworkData = result.data ? result.data.items.map((artwork) => ({
             artworkId: artwork.id,
             title: artwork.title[0],
@@ -45,7 +53,8 @@ const getRecords = async function (searchInput, filterQuery, pageNumber) {
             type: artwork.type,
             image: artwork.edmPreview ? artwork.edmPreview[0] : "No image available",
             description: artwork.dcDescriptionLangAware ? (artwork.dcDescriptionLangAware.en ? artwork.dcDescriptionLangAware.en[0] : "") : "",
-            keywords: []
+            keywords: [],
+            liked: likedArtworkIds.has(artwork.id),
         })) : [];
 
         await fetchKeywordsForAllArtworks(artworkData);
@@ -66,7 +75,7 @@ const fetchKeywordsForArtwork = async (artwork) => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ title: artwork.title })
+        body: JSON.stringify({title: artwork.title})
     });
 
     const keywords = await response.json();
