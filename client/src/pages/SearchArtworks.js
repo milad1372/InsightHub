@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useCallback,
   forwardRef,
   useRef,
   useImperativeHandle,
@@ -142,6 +143,18 @@ const SearchArtworks = ({
     useState("");
   const [userGalleries, setUserGalleries] = useState([]);
   const [facets, setFacets] = useState([]);
+  const [selectedKeywords, setSelectedKeywords] = useState({});
+  const [availableColors, setAvailableColors] = useState([
+    "#e41a1c",
+    "#377eb8",
+    "#4daf4a",
+    "#984ea3",
+    "#ff7f00",
+    "#ffff33",
+    "#a65628",
+    "#f781bf",
+    "#999999",
+  ]);
 
   useEffect(() => {
     const fetchArtworks = async () => {
@@ -380,14 +393,38 @@ const SearchArtworks = ({
     }
 
     let link = "https://www.europeana.eu/en/item" + artworkId;
-    window.open(link, "_blank");
+    // window.open(link, "_blank");
   };
+
+  const handleKeywordClick = useCallback(
+    (keyword) => {
+      const currentSelected = { ...selectedKeywords };
+
+      if (currentSelected[keyword]) {
+        const colorToReturn = currentSelected[keyword];
+        setAvailableColors((prev) => [...prev, colorToReturn]);
+        delete currentSelected[keyword];
+      } else {
+        if (availableColors.length === 0) {
+          alert("You can't select more keywords!");
+          return;
+        }
+
+        const colorToAssign = availableColors[0];
+        currentSelected[keyword] = colorToAssign;
+        setAvailableColors((prev) => prev.slice(1));
+      }
+
+      setSelectedKeywords(currentSelected);
+    },
+    [selectedKeywords, availableColors]
+  );
 
   const handleFavoriteClick = async (artwork) => {
     if (localStorage.getItem("loggedInUser")) {
       console.log("artwork.liked:", artwork.liked);
       console.log("artwork.isFavorited:", artwork.isFavorited);
-      if (!(artwork.isFavorited ||artwork.liked)) {
+      if (!(artwork.isFavorited || artwork.liked)) {
         const response = await saveLikedArtworkIntoDataBase(artwork);
       } else {
         const response = await deleteLikedArtworkFromDataBase(
@@ -398,15 +435,15 @@ const SearchArtworks = ({
 
     let artworkId = artwork.artworkId;
     setArtworkData((prevArtworkData) =>
-        prevArtworkData.map((artwork) =>
-            artwork.artworkId === artworkId
-                ? {
-                  ...artwork,
-                  isFavorited: !artwork.isFavorited,
-                  liked: !artwork.liked,
-                }
-                : artwork
-        )
+      prevArtworkData.map((artwork) =>
+        artwork.artworkId === artworkId
+          ? {
+              ...artwork,
+              isFavorited: !artwork.isFavorited,
+              liked: !artwork.liked,
+            }
+          : artwork
+      )
     );
 
     console.log("artwork.liked after:", artwork.liked);
@@ -456,7 +493,7 @@ const SearchArtworks = ({
                       handleCardClick(artwork.artworkId, event)
                     }
                   >
-                    <Col xs={8}>
+                    <Col xs={6}>
                       <Card.Body>
                         <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
                         <Card.Title>
@@ -465,7 +502,7 @@ const SearchArtworks = ({
                         <Card.Text>
                           {artwork.description != null &&
                           artwork.description != ""
-                            ? artwork.description.slice(0, 238) + "..."
+                            ? artwork.description.slice(0, 150) + "..."
                             : ""}
                         </Card.Text>
                         <div
@@ -499,7 +536,7 @@ const SearchArtworks = ({
                         </div>
                       </Card.Body>
                     </Col>
-                    <Col xs={4}>
+                    <Col xs={3}>
                       <Card.Body>
                         {artwork.image &&
                         artwork.image !== "No image available" ? (
@@ -538,12 +575,13 @@ const SearchArtworks = ({
 
                           <span
                             className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                                (artwork.isFavorited==true ||artwork.liked) ? "Liked-label" : "Like-label"
+                              artwork.isFavorited == true || artwork.liked
+                                ? "Liked-label"
+                                : "Like-label"
                             }`}
                             onClick={() => handleFavoriteClick(artwork)}
                           >
-                            {(artwork.isFavorited==true ||artwork.liked) ? (
-
+                            {artwork.isFavorited == true || artwork.liked ? (
                               <>
                                 <FavoriteIcon
                                   sx={{ fontSize: ".875rem", color: "red" }}
@@ -568,6 +606,42 @@ const SearchArtworks = ({
                           </span>
                         </div>
                       </Card.Body>
+                    </Col>
+                    <Col xs={3}>
+                      <Grid item xs={6} md={4}>
+                        <div className="bullet-points">
+                          {[...artwork.keywords].map((keyword) => (
+                            <div
+                              key={keyword}
+                              onClick={() => handleKeywordClick(keyword)}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                margin: "2px 0",
+                              }}
+                            >
+                              <div
+                                className="circle"
+                                style={{
+                                  background:
+                                    selectedKeywords[keyword] || "transparent",
+                                  border: selectedKeywords[keyword]
+                                    ? "none"
+                                    : "1px solid gray",
+                                }}
+                              />
+                              <span
+                                style={{
+                                  marginLeft: "2px",
+                                  color: selectedKeywords[keyword] || "black",
+                                }}
+                              >
+                                {keyword}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </Grid>
                     </Col>
                   </Row>
                 </Card>
@@ -617,7 +691,6 @@ const SearchArtworks = ({
                 bottom: 0,
                 left: 0,
                 right: 0,
-
                 margin: "auto",
               }}
             />
@@ -631,74 +704,131 @@ const SearchArtworks = ({
               onMouseEnter={() => handleCardHover(artwork.artworkId)}
               onMouseLeave={handleCardLeave}
             >
-              {/* Card image */}
-              {artwork.image && artwork.image !== "No image available" ? (
+              <div style={{ display: "flex", alignItems: "flex-start" }}>
+                {/* Card image */}
                 <div className={"temp"}>
-                  <Card.Img
-                    className="card-image-grid"
-                    src={artwork.image}
-                    alt={`The image for ${artwork.title}`}
-                    variant="top"
-                  />
-                  {hoveredCard === artwork.artworkId && (
-                    <div className="icon-container">
-                      <AddCircleIcon
-                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
-                        className="hover-icon"
-                        onClick={() => toggleAddModal(artwork, artwork.image)}
+                  {artwork.image && artwork.image !== "No image available" ? (
+                    <>
+                      <Card.Img
+                        className="card-image-grid"
+                        src={artwork.image}
+                        alt={`The image for ${artwork.title}`}
+                        variant="top"
                       />
-                      <FavoriteIcon
-                        onClick={() => handleFavoriteClick(artwork)}
-                        sx={{
-                          fontSize: "10px",
-                          height: "36px",
-                          width: "36px",
-                          color: (artwork.isFavorited ==true||artwork.liked)
-                            ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
-                              ? "red !important"
-                            : "#fff !important",
-                        }}
-                        className="hover-icon"
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Card.Img
+                        className="card-image-grid"
+                        src="./url.png"
+                        alt="Fallback"
+                        variant="top"
                       />
-                    </div>
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
-              ) : (
-                <div>
-                  <Card.Img
-                    className="card-image-grid"
-                    src="./url.png"
-                    alt="Fallback"
-                    variant="top"
-                  />
-                  {hoveredCard === artwork.artworkId && (
-                    <div className="icon-container">
-                      <AddCircleIcon
-                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
-                        className="hover-icon"
-                        onClick={() => toggleAddModal(artwork, artwork.image)}
-                      />
-                      <FavoriteIcon
-                        onClick={() => handleFavoriteClick(artwork)}
-                        sx={{
-                          fontSize: "10px",
-                          height: "36px",
-                          width: "36px",
-                          color: (artwork.isFavorited ==true||artwork.liked)
-                              ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
-                              ? "red !important"
-                            : "#fff !important",
+
+                {/* Keyword Section */}
+                <Grid item xs={6} md={4}>
+                  <div className="bullet-points">
+                    {[...artwork.keywords].map((keyword) => (
+                      <div
+                        key={keyword}
+                        onClick={() => handleKeywordClick(keyword)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          margin: "2px 0",
                         }}
-                        className="hover-icon"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+                      >
+                        <div
+                          className="circle"
+                          style={{
+                            background:
+                              selectedKeywords[keyword] || "transparent",
+                            border: selectedKeywords[keyword]
+                              ? "none"
+                              : "1px solid gray",
+                          }}
+                        />
+                        <span
+                          style={{
+                            marginLeft: "2px",
+                            color: selectedKeywords[keyword] || "black",
+                          }}
+                        >
+                          {keyword}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Grid>
+              </div>
+
               {/* Card body */}
               <Card.Body>
                 <Card.Title>
@@ -767,74 +897,130 @@ const SearchArtworks = ({
               onMouseLeave={handleCardLeave}
               onClick={(event) => handleCardClick(artwork.artworkId, event)}
             >
-              {/* Card image */}
-              {artwork.image && artwork.image !== "No image available" ? (
-                <div>
-                  <Card.Img
-                    className="card-image-grid"
-                    src={artwork.image}
-                    alt={`The image for ${artwork.title}`}
-                    variant="top"
-                  />
-                  {hoveredCard === artwork.artworkId && (
-                    <div className="icon-container">
-                      <AddCircleIcon
-                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
-                        className="hover-icon"
-                        onClick={() => toggleAddModal(artwork, artwork.image)}
+              <div style={{ display: "flex", alignItems: "flex-start" }}>
+                {/* Card image */}
+                <div className={"temp"}>
+                  {artwork.image && artwork.image !== "No image available" ? (
+                    <div>
+                      <Card.Img
+                        className="card-image-grid"
+                        src={artwork.image}
+                        alt={`The image for ${artwork.title}`}
+                        variant="top"
                       />
-                      <FavoriteIcon
-                        onClick={() => handleFavoriteClick(artwork)}
-                        sx={{
-                          fontSize: "10px",
-                          height: "36px",
-                          width: "36px",
-                          color: (artwork.isFavorited==true ||artwork.liked)
-                              ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
-                              ? "red !important"
-                            : "#fff !important",
-                        }}
-                        className="hover-icon"
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Card.Img
+                        className="card-image-grid"
+                        src="./url.png"
+                        alt="Fallback"
+                        variant="top"
                       />
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              ) : (
-                <div>
-                  <Card.Img
-                    className="card-image-grid"
-                    src="./url.png"
-                    alt="Fallback"
-                    variant="top"
-                  />
-                  {hoveredCard === artwork.artworkId && (
-                    <div className="icon-container">
-                      <AddCircleIcon
-                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
-                        className="hover-icon"
-                        onClick={() => toggleAddModal(artwork, artwork.image)}
-                      />
-                      <FavoriteIcon
-                        onClick={() => handleFavoriteClick(artwork)}
-                        sx={{
-                          fontSize: "10px",
-                          height: "36px",
-                          width: "36px",
-                          color: (artwork.isFavorited ==true||artwork.liked)
-                              ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
-                              ? "red !important"
-                            : "#fff !important",
+
+                {/* Keyword Section */}
+                <Grid item xs={6} md={4}>
+                  <div className="bullet-points">
+                    {[...artwork.keywords].map((keyword) => (
+                      <div
+                        key={keyword}
+                        onClick={() => handleKeywordClick(keyword)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          margin: "2px 0",
                         }}
-                        className="hover-icon"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+                      >
+                        <div
+                          className="circle"
+                          style={{
+                            background:
+                              selectedKeywords[keyword] || "transparent",
+                            border: selectedKeywords[keyword]
+                              ? "none"
+                              : "1px solid gray",
+                          }}
+                        />
+                        <span
+                          style={{
+                            marginLeft: "2px",
+                            color: selectedKeywords[keyword] || "black",
+                          }}
+                        >
+                          {keyword}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Grid>
+              </div>
             </Card>
           ))
         )}
@@ -1450,7 +1636,7 @@ const SearchArtworks = ({
                         justifyContent: "left",
                         alignItems: "center",
                         marginBottom: "20px",
-                        color: "#000"
+                        color: "#000",
                       }}
                       fullWidth={true}
                       onClick={(event) => {

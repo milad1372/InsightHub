@@ -272,7 +272,7 @@ data-and-buttons-wrapper [class^=icon-] {
 
 .card-image-grid{
   max-height: none;
-  min-height: 12rem;
+  min-height: 6rem;
   border-radius: 4px 4px 0 0;
   display: flex;
   flex: 1 1 auto;
@@ -282,7 +282,7 @@ data-and-buttons-wrapper [class^=icon-] {
 }
 
 .card-container-grid {
-  column-count: 6;
+  column-count: 5;
   /*display: 'flex';*/
   column-gap: 20px !important; /* Adjust the gap between cards as needed */
 }
