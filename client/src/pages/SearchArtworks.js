@@ -68,7 +68,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // Initialize the options for filters
-const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }];
+const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }, {value: "art", label: "Art"}, {value: "fashion", label: "Fashion"}, {value: "Industrial Heritage", label: "Industrial Heritage"}, {value: "Manyscripts", label: "Manuscripts"}, {value: "Maps and Geography", label: "Maps and Geography"}, {value: "Music", label: "Music"}, {value: "Natural History", label: "Natrual History"}, {value: "Newspapers", label: "Newspapers"}, {value: "Photograph", label: "Photograph"}, {value: "Sports", label: "Sports"}, {value: "World War I", label: "World War I"},];
 const CONTENT_TIER_OPTIONS = [{ value: "4", label: "4" }];
 const TYPE_OPTIONS = [{ value: "IMAGE", label: "Image" }];
 const COUNTRY_OPTIONS = [{ value: "Europe", label: "Europe" }];
@@ -155,6 +155,39 @@ const SearchArtworks = ({
     "#f781bf",
     "#999999",
   ]);
+  const [savedArtworks, setSavedArtworks] = useState(() => {
+    if (localStorage.getItem("savedArtworks")) {
+      return JSON.parse(localStorage.getItem("savedArtworks"));
+    }
+    return {};
+  });
+// const countryOptions = facets.find(facet => facet.name === "COUNTRY")
+//                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
+//                              || [];
+const extractFacetOptions = (facets, facetName) => {
+  return facets.find(facet => facet.name === facetName)?.fields.map(field => ({ value: field.label, label: field.label })) || [];
+}
+const countryOptions = extractFacetOptions(facets, "COUNTRY");
+const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
+const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
+const yearOptions = extractFacetOptions(facets, "YEAR");
+const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
+const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
+const reusability = extractFacetOptions(facets, "REUSABILITY");
+const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
+const dataTypeOptions = extractFacetOptions(facets, "TYPE");
+const locationOptions = extractFacetOptions(facets, "LOCATION");
+const populationGroupOptions = extractFacetOptions(facets, "POPULATION_GROUP");
+const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
+const genderOptions = extractFacetOptions(facets, "GENDER");
+const disabilityStatusOptions = extractFacetOptions(facets, "DISABILITY_STATUS");
+const socioeconomicStatusOptions = extractFacetOptions(facets, "SOCIOECONOMIC_STATUS");
+const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
+const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
+const languageOptions = extractFacetOptions(facets, "LANGUAGE");
+const religionOptions = extractFacetOptions(facets, "RELIGION");
+const rights = extractFacetOptions(facets, "RIGHTS");
+
 
   useEffect(() => {
     const fetchArtworks = async () => {
@@ -166,6 +199,7 @@ const SearchArtworks = ({
       setFacets(response?.facets || {});
       setArtworkData(response?.artworkData || []);
       setTotalRecords(response?.totalPages || 0);
+      console.log("dataTypeOptions",dataTypeOptions);
     };
 
     fetchArtworks();
@@ -184,7 +218,7 @@ const SearchArtworks = ({
     if (selectedContentTier.length > 0) {
       newFilterQuery += selectedContentTier
         .map(
-          (option) => "&qf=contentTier%3A" + encodeURIComponent(option.value)
+          (option) => "&qf=TYPE%3A" + encodeURIComponent(option.value)
         )
         .join("");
       setAnyFilterSelected(true);
@@ -192,7 +226,7 @@ const SearchArtworks = ({
 
     if (selectedType.length > 0) {
       newFilterQuery += selectedType
-        .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
+        .map((option) => "&reusability=" + encodeURIComponent(option.value))
         .join("");
       setAnyFilterSelected(true);
     }
@@ -486,14 +520,14 @@ const SearchArtworks = ({
             </div>
           ) : (
             artworkData.map((artwork) => (
-              <Col xs={12} md={6}>
+              <Col xs={12} md={12} lg={12} xl={6}>
                 <Card className="artwork-card">
                   <Row
                     onClick={(event) =>
                       handleCardClick(artwork.artworkId, event)
                     }
                   >
-                    <Col xs={6}>
+                    <Col xs={5}>
                       <Card.Body>
                         <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
                         <Card.Title>
@@ -536,7 +570,7 @@ const SearchArtworks = ({
                         </div>
                       </Card.Body>
                     </Col>
-                    <Col xs={3}>
+                    <Col xs={4}>
                       <Card.Body>
                         {artwork.image &&
                         artwork.image !== "No image available" ? (
@@ -558,18 +592,31 @@ const SearchArtworks = ({
                         )}
                         <div
                           className={
-                            "artwork-card-description data-and-buttons-wrapper d-flex mr-2"
+                            "artwork-card-description data-and-buttons-wrapper d-flex"
                           }
                         >
                           <span
-                            className="d-inline-flex align-items-center text-uppercase hover-effect"
+                            className={`d-inline-flex align-items-center text-uppercase hover-effect ${
+                              savedArtworks[artwork.artworkId]
+                                ? "green-label"
+                                : ""
+                            }`}
                             onClick={() =>
                               toggleAddModal(artwork, artwork.image)
                             }
                           >
-                            <AddCircleIcon sx={{ fontSize: ".875rem" }} />
+                            <AddCircleIcon
+                              sx={{
+                                fontSize: ".875rem",
+                                color: savedArtworks[artwork.artworkId]
+                                  ? "green"
+                                  : "inherit",
+                              }}
+                            />
                             <span className="license-label-text buttons-wrapper-icon">
-                              Save
+                              {savedArtworks[artwork.artworkId]
+                                ? "Saved"
+                                : "Save"}
                             </span>
                           </span>
 
@@ -608,40 +655,38 @@ const SearchArtworks = ({
                       </Card.Body>
                     </Col>
                     <Col xs={3}>
-                      <Grid item xs={6} md={4}>
-                        <div className="bullet-points">
-                          {[...artwork.keywords].map((keyword) => (
+                      <div className="bullet-pad-left">
+                        {[...artwork.keywords].map((keyword) => (
+                          <div
+                            key={keyword}
+                            onClick={() => handleKeywordClick(keyword)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              margin: "2px 0",
+                            }}
+                          >
                             <div
-                              key={keyword}
-                              onClick={() => handleKeywordClick(keyword)}
+                              className="circle"
                               style={{
-                                display: "flex",
-                                alignItems: "center",
-                                margin: "2px 0",
+                                background:
+                                  selectedKeywords[keyword] || "transparent",
+                                border: selectedKeywords[keyword]
+                                  ? "none"
+                                  : "1px solid gray",
+                              }}
+                            />
+                            <span
+                              style={{
+                                marginLeft: "2px",
+                                color: selectedKeywords[keyword] || "black",
                               }}
                             >
-                              <div
-                                className="circle"
-                                style={{
-                                  background:
-                                    selectedKeywords[keyword] || "transparent",
-                                  border: selectedKeywords[keyword]
-                                    ? "none"
-                                    : "1px solid gray",
-                                }}
-                              />
-                              <span
-                                style={{
-                                  marginLeft: "2px",
-                                  color: selectedKeywords[keyword] || "black",
-                                }}
-                              >
-                                {keyword}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </Grid>
+                              {keyword}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </Col>
                   </Row>
                 </Card>
@@ -677,7 +722,7 @@ const SearchArtworks = ({
     }));
 
     return (
-      <Container className="card-container-grid mx-0">
+      <Container className="card-container-grid">
         {showProgressbar ? (
           <div className={"progressbarBox"}>
             <CircularProgress
@@ -791,42 +836,6 @@ const SearchArtworks = ({
                     </>
                   )}
                 </div>
-
-                {/* Keyword Section */}
-                <Grid item xs={6} md={4}>
-                  <div className="bullet-points">
-                    {[...artwork.keywords].map((keyword) => (
-                      <div
-                        key={keyword}
-                        onClick={() => handleKeywordClick(keyword)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          margin: "2px 0",
-                        }}
-                      >
-                        <div
-                          className="circle"
-                          style={{
-                            background:
-                              selectedKeywords[keyword] || "transparent",
-                            border: selectedKeywords[keyword]
-                              ? "none"
-                              : "1px solid gray",
-                          }}
-                        />
-                        <span
-                          style={{
-                            marginLeft: "2px",
-                            color: selectedKeywords[keyword] || "black",
-                          }}
-                        >
-                          {keyword}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Grid>
               </div>
 
               {/* Card body */}
@@ -834,9 +843,48 @@ const SearchArtworks = ({
                 <Card.Title>
                   {artwork.title == "null" ? "" : artwork.title}
                 </Card.Title>
-                <Card.Text>{artwork.dcCreator}</Card.Text>
-                <Card.Text>{artwork.dataProvider}</Card.Text>
-                {/* rest of the code */}
+                <Row>
+                  <Col xs={6}>
+                    <Card.Text>{artwork.dcCreator}</Card.Text>
+                    <Card.Text>{artwork.dataProvider}</Card.Text>
+                  </Col>
+                  <Col xs={6}>
+                    <Grid item xs={6} md={4}>
+                      <div className="bullet">
+                        {[...artwork.keywords].map((keyword) => (
+                          <div
+                            key={keyword}
+                            onClick={() => handleKeywordClick(keyword)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              margin: "2px 0",
+                            }}
+                          >
+                            <div
+                              className="circle"
+                              style={{
+                                background:
+                                  selectedKeywords[keyword] || "transparent",
+                                border: selectedKeywords[keyword]
+                                  ? "none"
+                                  : "1px solid gray",
+                              }}
+                            />
+                            <span
+                              style={{
+                                marginLeft: "2px",
+                                color: selectedKeywords[keyword] || "black",
+                              }}
+                            >
+                              {keyword}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </Grid>
+                  </Col>
+                </Row>
               </Card.Body>
             </Card>
           ))
@@ -869,7 +917,7 @@ const SearchArtworks = ({
     }));
 
     return (
-      <Container className="card-container-grid mx-0">
+      <Container className="card-container-grid">
         {showProgressbar ? (
           <div className={"progressbarBox"}>
             <CircularProgress
@@ -984,42 +1032,39 @@ const SearchArtworks = ({
                     </div>
                   )}
                 </div>
-
                 {/* Keyword Section */}
-                <Grid item xs={6} md={4}>
-                  <div className="bullet-points">
-                    {[...artwork.keywords].map((keyword) => (
+                <div className="bullet">
+                  {[...artwork.keywords].map((keyword) => (
+                    <div
+                      key={keyword}
+                      onClick={() => handleKeywordClick(keyword)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        margin: "2px 0",
+                      }}
+                    >
                       <div
-                        key={keyword}
-                        onClick={() => handleKeywordClick(keyword)}
+                        className="circle"
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          margin: "2px 0",
+                          background:
+                            selectedKeywords[keyword] || "transparent",
+                          border: selectedKeywords[keyword]
+                            ? "none"
+                            : "1px solid gray",
+                        }}
+                      />
+                      <span
+                        style={{
+                          marginLeft: "2px",
+                          color: selectedKeywords[keyword] || "black",
                         }}
                       >
-                        <div
-                          className="circle"
-                          style={{
-                            background:
-                              selectedKeywords[keyword] || "transparent",
-                            border: selectedKeywords[keyword]
-                              ? "none"
-                              : "1px solid gray",
-                          }}
-                        />
-                        <span
-                          style={{
-                            marginLeft: "2px",
-                            color: selectedKeywords[keyword] || "black",
-                          }}
-                        >
-                          {keyword}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Grid>
+                        {keyword}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Card>
           ))
@@ -1123,7 +1168,7 @@ const SearchArtworks = ({
             onRemove={() => setSelectedContentTier([])}
           />
           <Select
-            options={CONTENT_TIER_OPTIONS}
+            options={dataTypeOptions}
             isMulti
             value={selectedContentTier}
             onChange={(selectedOption) =>
@@ -1140,7 +1185,7 @@ const SearchArtworks = ({
             onRemove={() => setSelectedType([])}
           />
           <Select
-            options={TYPE_OPTIONS}
+            options={reusability}
             isMulti
             value={selectedType}
             onChange={(selectedOption) => setSelectedType(selectedOption)}
@@ -1162,13 +1207,13 @@ const SearchArtworks = ({
           <div id="additional-filters">
             {/* Country Filter */}
             <Form.Group controlId="countryFilter">
-              <Form.Label className="label">Country</Form.Label>
+              <Form.Label className="label">PROVIDING COUNTRY</Form.Label>
               <FilterChip
                 selectedValues={selectedCountry}
                 onRemove={() => setSelectedCountry([])}
               />
               <Select
-                options={COUNTRY_OPTIONS}
+                options={countryOptions}
                 isMulti
                 value={selectedCountry}
                 onChange={(selectedOption) =>
@@ -1185,7 +1230,7 @@ const SearchArtworks = ({
                 onRemove={() => setSelectedLanguage([])}
               />
               <Select
-                options={LANGUAGE_OPTIONS}
+                options={languageOptions}
                 isMulti
                 value={selectedLanguage}
                 onChange={(selectedOption) =>
@@ -1195,31 +1240,14 @@ const SearchArtworks = ({
             </Form.Group>
 
             {/* Provider Filter */}
-            <Form.Group controlId="providerFilter">
-              <Form.Label className="label">Provider</Form.Label>
-              <FilterChip
-                selectedValues={selectedProvider}
-                onRemove={() => setSelectedProvider([])}
-              />
-              <Select
-                options={PROVIDER_OPTIONS}
-                isMulti
-                value={selectedProvider}
-                onChange={(selectedOption) =>
-                  setSelectedProvider(selectedOption)
-                }
-              />
-            </Form.Group>
-
-            {/* Data Provider Filter */}
             <Form.Group controlId="dataProviderFilter">
-              <Form.Label className="label">Data Provider</Form.Label>
+              <Form.Label className="label">AGGREGATOR</Form.Label>
               <FilterChip
                 selectedValues={selectedDataProvider}
                 onRemove={() => setSelectedDataProvider([])}
               />
               <Select
-                options={DATA_PROVIDER_OPTIONS}
+                options={ProviderOptions}
                 isMulti
                 value={selectedDataProvider}
                 onChange={(selectedOption) =>
@@ -1228,16 +1256,33 @@ const SearchArtworks = ({
               />
             </Form.Group>
 
+            {/* PROVIDING INSTIUTION Filter */}
+            <Form.Group controlId="providerFilter">
+              <Form.Label className="label">PROVIDING INSTIUTION</Form.Label>
+              <FilterChip
+                selectedValues={selectedProvider}
+                onRemove={() => setSelectedProvider([])}
+              />
+              <Select
+                options={dataProviderOptions}
+                isMulti
+                value={selectedProvider}
+                onChange={(selectedOption) =>
+                  setSelectedProvider(selectedOption)
+                }
+              />
+            </Form.Group>
+
             {/* Colour Palette Filter */}
             <Form.Group controlId="colourPaletteFilter">
-              <Form.Label className="label">Colour Palette</Form.Label>
+              <Form.Label className="label">COLOUR</Form.Label>
               <FilterChip
                 selectedValues={selectedColourPalette}
                 onRemove={() => setSelectedColourPalette([])}
               />
               <Select
                 className="dropdown-toggle"
-                options={COLOUR_PALETTE_OPTIONS}
+                options={colourPaletteOptions}
                 isMulti
                 value={selectedColourPalette}
                 onChange={(selectedOption) =>
@@ -1398,6 +1443,17 @@ const SearchArtworks = ({
       const response = await getGalleries();
       setUserGalleries(response.galleries);
     }
+    let updatedSavedArtworks = { ...savedArtworks };
+
+    if (localStorage.getItem("savedArtworks")) {
+      updatedSavedArtworks = JSON.parse(localStorage.getItem("savedArtworks"));
+    }
+
+    updatedSavedArtworks[artwork.artworkId] =
+      !updatedSavedArtworks[artwork.artworkId];
+    localStorage.setItem("savedArtworks", JSON.stringify(updatedSavedArtworks));
+
+    setSavedArtworks(updatedSavedArtworks);
   };
   const toggleAddChildModal = (artworkId) => {
     setIsAddModalChildOpen(!isAddModalChildOpen);
@@ -1560,7 +1616,7 @@ const SearchArtworks = ({
     <>
       {localStorage.getItem("firstRun") != null &&
       localStorage.getItem("firstRun") != "true" ? (
-        <Container fluid className="search-container mx-0 px-8">
+        <Container fluid className="search-container">
           <Row>
             <Col xs={12} sm={10}>
               <Row>

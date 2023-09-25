@@ -15,7 +15,7 @@ module.exports = {
 
     retrieveDocumentsFromEuropeanaAPI: async function (searchInput, filterQuery, pageNumber, response) {
         let startRecord = 24 * (pageNumber - 1) + 1;
-        let targetURI = Base_URL_For_Europeana + `profile=standard&sort=score+desc&query=${searchInput}&${filterQuery}&rows=${Max_Records}&start=${startRecord}&wskey=${Api_Key}`;
+        let targetURI = Base_URL_For_Europeana + `profile=facets&sort=score+desc&query=${searchInput}&${filterQuery}&rows=${Max_Records}&start=${startRecord}&wskey=${Api_Key}`;
 
         console.log("targetURI: ", targetURI);
 

@@ -1,11 +1,49 @@
+.card-container-grid{
+  column-count: 1; /* fewer columns for mobile */
+  column-gap: 10px;
+}
+
+/* Small devices (landscape phones) */
+@media (max-width: 768px) {
+  .card-container-grid {
+    column-count: 1;
+    column-gap: 15px;
+  }
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media (min-width: 769px) and (max-width: 991px) {
+  .card-container-grid {
+    column-count: 3;
+    column-gap: 10px;
+  }
+}
+
+/* Large devices (desktops, less than 1200px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .card-container-grid {
+    column-count: 4;
+    column-gap: 15px;
+  }
+}
+
+/* Extra large devices (large desktops) */
+@media (min-width: 1200px) {
+  .card-container-grid {
+    column-count: 5;
+    column-gap: 20px;
+  }
+}
+
 .artwork-card, .artwork-list {
   border: 1px solid transparent;
   transition: border 0.3s ease-in-out;
   color: #4d4d4d;
+  margin: 10px;
 }
 
 .artwork-card{
-  min-width: 264px;
+  min-width: 35rem;
   min-height: 0;
   display: inline-block;
   width: 100%;
@@ -23,7 +61,7 @@
   box-sizing: border-box;
   font-family: "Open Sans","Arial",sans-serif;
   font-weight: 400;
-  margin: 10px;
+  margin: 1rem;
   max-width: none;
 }
 
@@ -53,7 +91,6 @@
   display: inline-flex;
   justify-content: center;
   overflow: hidden;
-
 }
 
 .card-subtitle{
@@ -164,29 +201,78 @@ data-and-buttons-wrapper [class^=icon-] {
 
 }
 
-.container, .container-lg, .container-md, .container-sm, .container-xl {
-  max-width: 1640px;
-  min-width: 1540px;
-}
-
-@-moz-document url-prefix() {
-  .container,
-  .container-lg,
-  .container-md,
-  .container-sm,
-  .container-xl {
-    max-width: 1540px;
-    min-width: 1040px;
-  }
-}
-
 .container,
 .container-lg,
 .container-md,
 .container-sm,
 .container-xl {
-  max-width: 2000px;
-  min-width: 1040px;
+    width: 100%;
+}
+
+/* For very small devices, such as mobile phones */
+@media (max-width: 575px) {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 100%;
+    }
+}
+
+/* For small devices, such as tablets */
+@media (min-width: 576px) and (max-width: 767px) {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 720px;
+    }
+}
+
+/* For medium devices, such as small laptops */
+@media (min-width: 768px) and (max-width: 991px) {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 1040px;
+    }
+}
+
+/* For large devices, such as laptops and desktops */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 1540px;
+    }
+}
+
+/* For very large devices, such as large desktops */
+@media (min-width: 1200px) {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 2000px;
+    }
+}
+
+@-moz-document url-prefix() {
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 1540px;
+        min-width: 1040px;
+    }
 }
 
 
@@ -209,9 +295,9 @@ data-and-buttons-wrapper [class^=icon-] {
 }
 
 .search-container {
-  padding-right: 70px;
-  padding-top: 70px;
-  padding-left: 70px;
+  padding-right: 3rem;
+  padding-top: 4rem;
+  padding-left: 3rem;
   height: 100%; /* Set the height to 100% */
 }
 
@@ -278,11 +364,12 @@ data-and-buttons-wrapper [class^=icon-] {
   flex: 1 1 auto;
   overflow: hidden;
   width: 100%;
+  padding: 1rem;
 
 }
 
 .card-container-grid {
-  column-count: 5;
+  /* column-count: 5; */
   /*display: 'flex';*/
   column-gap: 20px !important; /* Adjust the gap between cards as needed */
 }
@@ -462,7 +549,7 @@ data-and-buttons-wrapper [class^=icon-] {
   box-shadow: -5px 0px 3px -5px rgba(0, 0, 0, 0.25);
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1300px) {
   .col-filters {
     display: none;
   }
@@ -482,10 +569,28 @@ data-and-buttons-wrapper [class^=icon-] {
   border-color: green !important;
 }
 
-.Saved-label {
+.green-label {
   color: green;
 }
 
-.Saved-label-text {
-  color: green;
+.bullet {
+  list-style-type: disc;
+  padding: 1rem;
+  overflow-y: visible;
+  max-height: 150px; /* or whatever maximum height you prefer */
+}
+
+.bullet-pad-left {
+  list-style-type: disc;
+  padding-top: 2rem;
+  padding-left: 2rem;
+  padding-right: 1rem;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+  width: 0;
+  padding: 0;
+  margin: 0;
 }
