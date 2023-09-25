@@ -1,5 +1,5 @@
 .user-profile-container .card-container-grid {
-    column-count: 5;
+    column-count: 6;
     /*display: 'flex';*/
     column-gap: 20px !important; /* Adjust the gap between cards as needed */
 }
@@ -17,13 +17,7 @@ canvas {
 }
 
 
-.bullet-points {
-    list-style-type: disc;
-    margin-left: 5px;
-    padding-left: 20px;
-    padding-right: 5px;
-    padding-top: 20px;
-}
+
 
 
 .keyword-container {

@@ -42,22 +42,27 @@ const Gallery = function () {
     const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] = useState("");
     const [galleryImage, setGalleryImage] = useState("");
     const [updatingGallery, setUpdatingGallery] = useState(false);
-    const [selectedKeywords, setSelectedKeywords] = useState({});
-    const [availableColors, setAvailableColors] = useState([
-        "#e41a1c",
-        "#377eb8",
-        "#4daf4a",
-        "#984ea3",
-        "#ff7f00",
-        "#ffff33",
-        "#a65628",
-        "#f781bf",
-        "#999999"
-    ]);
-
     const location = useLocation();
     let {galleryData} = location.state || {};
     const classes = useStyles();
+    const [keywordColors, setKeywordColors] = useState({});
+    const [keywords, setKeywords] = useState([]);
+    const [selectedKeywords, setSelectedKeywords] = useState([]);
+    const allUniqueKeywords = [...new Set(galleryArtworks.flatMap(artwork => artwork.keywords || []))];
+
+    const colorPalette = [
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+    ];
+
     useEffect(() => {
         if (!updatingGallery) {
             console.log('galleryData: ', galleryData);
@@ -65,8 +70,51 @@ const Gallery = function () {
             setGalleryPrivate(galleryData.isPrivate);
             setGalleryName(galleryData.gallery);
             setGalleryDescription(galleryData.galleryDescription);
+            let allKeywords = galleryArtworks.flatMap(artwork => artwork.keywords || []);
+            let keywordCounts = allKeywords.reduce((acc, keyword) => {
+                acc[keyword] = (acc[keyword] || 0) + 1;
+                return acc;
+            }, {});
+
+            let uniqueKeywords = Object.keys(keywordCounts).map(keyword => ({ keyword, count: keywordCounts[keyword] }));
+            uniqueKeywords.sort((a, b) => b.count - a.count);
+
+            setKeywords(uniqueKeywords);
         }
-    }, [galleryData, updatingGallery]);
+    }, [galleryData, updatingGallery, galleryArtworks]);
+
+    const handleKeywordClick = (keyword) => {
+        if (selectedKeywords.includes(keyword)) {
+            // Remove keyword from selected keywords
+            setSelectedKeywords(prevKeywords => prevKeywords.filter(k => k !== keyword));
+
+            // Return the color to the color palette
+            setKeywordColors(prevKeywordColors => {
+                const newKeywordColors = { ...prevKeywordColors };
+                delete newKeywordColors[keyword];
+                return newKeywordColors;
+            });
+        } else {
+            // Check if the maximum limit of selected keywords is reached
+            if (selectedKeywords.length >= 10) {
+                window.alert('You can select up to 10 keywords only.');
+                return;
+            }
+
+            // Add keyword to selected keywords
+            setSelectedKeywords(prevKeywords => [...prevKeywords, keyword]);
+
+            // Assign a color to the newly selected keyword
+            const availableColors = colorPalette.filter(color => !Object.values(keywordColors).includes(color));
+            if (availableColors.length > 0) {
+                setKeywordColors(prevKeywordColors => ({
+                    ...prevKeywordColors,
+                    [keyword]: availableColors[0],
+                }));
+            }
+        }
+    };
+
 
     const Artworks = (() => {
         const [hoveredCard, setHoveredCard] = useState(null);
@@ -100,117 +148,97 @@ const Gallery = function () {
             window.open(link, "_blank");
         };
 
-        const handleKeywordClick = useCallback((keyword) => {
-            const currentSelected = {...selectedKeywords};
-
-            if (currentSelected[keyword]) {
-                const colorToReturn = currentSelected[keyword];
-                setAvailableColors(prev => [...prev, colorToReturn]);
-                delete currentSelected[keyword];
-            } else {
-                if (availableColors.length === 0) {
-                    alert("You can't select more keywords!");
-                    return;
-                }
-
-                const colorToAssign = availableColors[0];
-                currentSelected[keyword] = colorToAssign;
-                setAvailableColors(prev => prev.slice(1));
-            }
-
-            setSelectedKeywords(currentSelected);
-        }, [selectedKeywords, availableColors]);
-
-
         return (
             <div className={"gallery-container"}>
-            <Container className="card-container-grid mx-0">
-                {showProgressbar ?
-                    <div className={'progressbarBox'}>
-                        <CircularProgress
-                            size={20}
-                            style={{
-                                color: 'black',
-                                width: 20,
-                                height: 20,
-                                position: 'absolute',
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
 
-                                margin: 'auto'
-                            }}/>
-                    </div>
-                    : galleryArtworks.map((artwork) => (
+                <div className={"keyword-container"}>
+                    {allUniqueKeywords.map((keyword, index) => (
+                        <div key={index} className={"keyword-item"} onClick={() => handleKeywordClick(keyword)}>
 
-
-                        <div className={"gallery-card"}>
-                            <Card key={artwork.artworkId} className="artwork-card-grid"
-                                  onClick={(event) => handleCardClick(artwork.artworkId, event)}
-                                  onMouseEnter={() => handleCardHover(artwork.artworkId)}
-                                  onMouseLeave={handleCardLeave}>
-                                <Grid container >
-                                    <Grid item xs={6} md={8}>
-                                        <div className="card-content-wrapper">
-                                            {/* Card image */}
-                                            {artwork.image && artwork.image !== "No image available" ? (
-                                                <div className={'temp'}>
-                                                    <Card.Img className="card-image-grid"
-                                                              src={artwork.image}
-                                                              alt={`The image for ${artwork.title}`}
-                                                              variant="top"
-                                                    />
-
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <Card.Img className="card-image-grid"
-                                                              src="./url.png"
-                                                              alt="Fallback"
-                                                              variant="top"
-                                                    />
-
-                                                </div>
-                                            )}
-                                            {/* Card body */}
-                                            <Card.Body>
-                                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
-                                                <Card.Text>{artwork.dcCreator}</Card.Text>
-                                                <Card.Text>{artwork.dataProvider}</Card.Text>
-                                            </Card.Body>
-                                        </div>
-                                    </Grid>
-                                    <Grid item xs={6} md={4}>
-                                        <div className="bullet-points">
-                                            {[...artwork.keywords].map(keyword => (
-                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)}
-                                                     style={{display: 'flex', alignItems: 'center', margin: '2px 0'}}>
-                                                    <div
-                                                        className="circle"
-                                                        style={{
-                                                            background: selectedKeywords[keyword] || 'transparent',
-                                                            border: selectedKeywords[keyword] ? 'none' : '1px solid gray'
-                                                        }}
-                                                    />
-                                                    <span
-                                                        style={{
-                                                            marginLeft: '2px',
-                                                            color: selectedKeywords[keyword] || 'black'
-                                                        }}
-                                                    >
-                                                  {keyword}
-                                                </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </Grid>
-                                </Grid>
-
-
-                            </Card>
+                            <span
+                                className={"keyword-disc"}
+                                style={{ backgroundColor: keywordColors[keyword] ? keywordColors[keyword] : 'transparent' }}
+                            />
+                            <span>{keyword}</span>
                         </div>
                     ))}
+                </div>
+
+                <Container className="card-container-grid mx-0">
+                { galleryArtworks.map((artwork, index) => (
+                            <div className="gallery-card" key={artwork.artworkId}>
+                                <Card
+                                    className="artwork-card-grid"
+                                    onClick={(event) => handleCardClick(artwork.artworkId, event)}
+                                    onMouseEnter={() => handleCardHover(artwork.artworkId)}
+                                    onMouseLeave={handleCardLeave}
+                                >
+                                    <Grid container>
+                                        <Grid item xs={12} md={12}>
+                                            <div className="card-content-wrapper">
+                                                {/* Card image */}
+                                                {artwork.image && artwork.image !== "No image available" ? (
+                                                    <div className={'temp'}>
+                                                        <Card.Img
+                                                            className="card-image-grid"
+                                                            src={artwork.image}
+                                                            alt={`The image for ${artwork.title}`}
+                                                            variant="top"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <Card.Img
+                                                            className="card-image-grid"
+                                                            src="./url.png"
+                                                            alt="Fallback"
+                                                            variant="top"
+                                                        />
+                                                    </div>
+                                                )}
+                                                {/* Card body */}
+                                                <Card.Body>
+                                                    <Card.Title>{artwork.title === "null" ? "" : artwork.title}</Card.Title>
+                                                    <Card.Text>{artwork.dcCreator}</Card.Text>
+                                                    <Card.Text>{artwork.dataProvider}</Card.Text>
+                                                    <Card.Text>
+                                                        <div className="card-keyword-indicators">
+                                                            {colorPalette.map((color, index) => {
+                                                                // Find if there is a keyword associated with the current color
+                                                                const keyword = Object.entries(keywordColors).find(([key, value]) => value === color)?.[0];
+
+                                                                // Find if the keyword is selected
+                                                                const isSelected = selectedKeywords.includes(keyword);
+
+                                                                // Determine whether to show the disc (it must have a keyword and be selected)
+                                                                const showDisc = keyword && isSelected && (artwork.keywords || []).includes(keyword);
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="card-keyword-disc"
+                                                                        style={{
+                                                                            backgroundColor: showDisc ? color : 'transparent',
+                                                                            borderRadius: '50%',
+                                                                            width: '12px',
+                                                                            height: '12px',
+                                                                            margin: '2px',
+                                                                        }}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </Card.Text>
+                                                </Card.Body>
+                                            </div>
+                                        </Grid>
+                                    </Grid>
+                                </Card>
+
+                                {/* Keyword indicators at the end of each card */}
+
+                            </div>
+                        ))}
             </Container>
             </div>
         );

@@ -49,19 +49,7 @@ const UserProfile = function () {
     const [addedArtworkImageToGalleryUP, setAddedArtworkImageToGalleryUP] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [userGalleries, setUserGalleries] = useState([]);
-    const [clickedKeyword, setClickedKeyword] = useState(null);
-    const [selectedKeywords, setSelectedKeywords] = useState({});
-    const [availableColors, setAvailableColors] = useState([
-        "#e41a1c",
-        "#377eb8",
-        "#4daf4a",
-        "#984ea3",
-        "#ff7f00",
-        "#ffff33",
-        "#a65628",
-        "#f781bf",
-        "#999999"
-    ]);
+
 
     const handleChange = async (event, newValue) => {
         setValue(newValue);
@@ -96,28 +84,6 @@ const UserProfile = function () {
     const handleCreateNewGalleryCardClick= (event) => {
         setIsAddModalChildOpen(!isAddModalChildOpen);
     }
-
-    const handleKeywordClick = useCallback((keyword) => {
-        const currentSelected = { ...selectedKeywords };
-
-        if (currentSelected[keyword]) {
-            const colorToReturn = currentSelected[keyword];
-            setAvailableColors(prev => [...prev, colorToReturn]);
-            delete currentSelected[keyword];
-        } else {
-            if (availableColors.length === 0) {
-                alert("You can't select more keywords!");
-                return;
-            }
-
-            const colorToAssign = availableColors[0];
-            currentSelected[keyword] = colorToAssign;
-            setAvailableColors(prev => prev.slice(1));
-        }
-
-        setSelectedKeywords(currentSelected);
-    }, [selectedKeywords, availableColors]);
-
 
 
     const PublicGalleris = (() => {
@@ -177,7 +143,7 @@ const UserProfile = function () {
                                 onClick={(event) => handleCardClick(gallery, event)}
                             >
                                 <Grid container >
-                                    <Grid item xs={6} md={8}>
+                                    <Grid item xs={12} md={12}>
                                         {gallery.image && gallery.image !== 'No image available' ? (
                                                 <Card.Img
                                                     className="card-image-grid"
@@ -201,30 +167,6 @@ const UserProfile = function () {
                                             <Card.Text>{gallery.gallery === 'null' ? '' : gallery.gallery}</Card.Text>
 
                                         </Card.Body>
-                                    </Grid>
-                                    <Grid item xs={6} md={4}>
-                                        <div className="bullet-points">
-                                            {[...gallery.keywords].map(keyword => (
-                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)}
-                                                     style={{display: 'flex', alignItems: 'center', margin: '2px 0'}}>
-                                                    <div
-                                                        className="circle"
-                                                        style={{
-                                                            background: selectedKeywords[keyword] || 'transparent',
-                                                            border: selectedKeywords[keyword] ? 'none' : '1px solid gray'
-                                                        }}
-                                                    />
-                                                    <span
-                                                        style={{
-                                                            marginLeft: '2px',
-                                                            color: selectedKeywords[keyword] || 'black'
-                                                        }}
-                                                    >
-                                                  {keyword}
-                                                </span>
-                                                </div>
-                                            ))}
-                                        </div>
                                     </Grid>
                                 </Grid>
 

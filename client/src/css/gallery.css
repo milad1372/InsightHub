@@ -1,6 +1,57 @@
 
 .gallery-container .card-container-grid {
-    column-count: 4;
+    column-count: 5;
+    flex-grow: 1;
     /*display: 'flex';*/
     column-gap: 20px !important; /* Adjust the gap between cards as needed */
+}
+
+
+.gallery-container {
+    display: flex;
+    gap: 100px; /* Adjust the gap as needed */
+    flex-direction: row-reverse; /* To keep the keyword container to the right */
+}
+
+.keyword-container {
+    flex-shrink: 0;
+    /* remove position: absolute; and right: 0; */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.keyword-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.keyword-disc {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid #000;
+    margin-right: 8px;
+}
+
+.keyword-text {
+    margin-right: 16px;
+}
+
+.card-keyword-indicators {
+    display: flex;
+    bottom: 16px;
+    right: 3px;
+    flex-wrap: wrap;
+    max-height: 20px;
+    position: absolute;
+    left: 16px;
+}
+
+.card-keyword-disc {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 1px;
 }
