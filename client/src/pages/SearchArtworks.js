@@ -197,7 +197,13 @@ const rights = extractFacetOptions(facets, "RIGHTS");
         currentPage
       );
       setFacets(response?.facets || {});
-      setArtworkData(response?.artworkData || []);
+        const updatedArtworkData = (response?.artworkData || []).map(artwork => {
+            if (artwork.liked) {
+                artwork.isFavorited = true;
+            }
+            return artwork;
+        });
+      setArtworkData(updatedArtworkData);
       setTotalRecords(response?.totalPages || 0);
       console.log("dataTypeOptions",dataTypeOptions);
     };
@@ -325,7 +331,13 @@ const rights = extractFacetOptions(facets, "RIGHTS");
     setShowProgressbar(isLoading);
     setCurrentPage(1);
     setTotalRecords(totalPages);
-    setArtworkData(searchedArtworks);
+      const updatedArtworkData = (searchedArtworks).map(artwork => {
+          if (artwork.liked) {
+              artwork.isFavorited = true;
+          }
+          return artwork;
+      });
+    setArtworkData(updatedArtworkData);
 
     // Cleanup function, executed when component unmounts or when dependency array changes
     return () => {
@@ -368,7 +380,13 @@ const rights = extractFacetOptions(facets, "RIGHTS");
     setShowProgressbar(true);
     setCurrentPage(pageNumber);
     getPaginatedArtworks(pageNumber).then((data) => {
-      setArtworkData(data);
+        const updatedArtworkData = (data).map(artwork => {
+            if (artwork.liked) {
+                artwork.isFavorited = true;
+            }
+            return artwork;
+        });
+      setArtworkData(updatedArtworkData);
       setShowProgressbar(false);
     });
   };
@@ -399,8 +417,14 @@ const rights = extractFacetOptions(facets, "RIGHTS");
       localStorage.getItem("currentFilter"),
       pageNumber
     );
+      const updatedArtworkData = (response?.artworkData || []).map(artwork => {
+          if (artwork.liked) {
+              artwork.isFavorited = true;
+          }
+          return artwork;
+      });
     setTotalRecords(response?.totalPages || 0);
-    setArtworkData(response?.artworkData || []);
+    setArtworkData(updatedArtworkData);
     return response?.artworkData || [];
   };
 
@@ -456,9 +480,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
 
   const handleFavoriteClick = async (artwork) => {
     if (localStorage.getItem("loggedInUser")) {
-      console.log("artwork.liked:", artwork.liked);
-      console.log("artwork.isFavorited:", artwork.isFavorited);
-      if (!(artwork.isFavorited || artwork.liked)) {
+      if (!artwork.isFavorited) {
         const response = await saveLikedArtworkIntoDataBase(artwork);
       } else {
         const response = await deleteLikedArtworkFromDataBase(
@@ -479,9 +501,6 @@ const rights = extractFacetOptions(facets, "RIGHTS");
           : artwork
       )
     );
-
-    console.log("artwork.liked after:", artwork.liked);
-    console.log("artwork.isFavorited:", artwork.isFavorited);
   };
 
   const ListView = forwardRef((props, ref) => {
@@ -622,13 +641,13 @@ const rights = extractFacetOptions(facets, "RIGHTS");
 
                           <span
                             className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                              artwork.isFavorited == true || artwork.liked
+                              artwork.isFavorited == true 
                                 ? "Liked-label"
                                 : "Like-label"
                             }`}
                             onClick={() => handleFavoriteClick(artwork)}
                           >
-                            {artwork.isFavorited == true || artwork.liked ? (
+                            {artwork.isFavorited == true ? (
                               <>
                                 <FavoriteIcon
                                   sx={{ fontSize: ".875rem", color: "red" }}
@@ -780,11 +799,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                               height: "36px",
                               width: "36px",
                               color:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "#fff !important"
                                   : "#4d4d4d !important",
                               backgroundColor:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "red !important"
                                   : "#fff !important",
                             }}
@@ -821,11 +840,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                               height: "36px",
                               width: "36px",
                               color:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "#fff !important"
                                   : "#4d4d4d !important",
                               backgroundColor:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "red !important"
                                   : "#fff !important",
                             }}
@@ -976,11 +995,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                               height: "36px",
                               width: "36px",
                               color:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "#fff !important"
                                   : "#4d4d4d !important",
                               backgroundColor:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "red !important"
                                   : "#fff !important",
                             }}
@@ -1017,11 +1036,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                               height: "36px",
                               width: "36px",
                               color:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "#fff !important"
                                   : "#4d4d4d !important",
                               backgroundColor:
-                                artwork.isFavorited == true || artwork.liked
+                                artwork.isFavorited == true
                                   ? "red !important"
                                   : "#fff !important",
                             }}
