@@ -62,9 +62,10 @@ const getRecords = async function (searchInput, filterQuery, pageNumber) {
         dataObject = {
             items: result.data ? result.data.items : [],
             artworkData: artworkData,
-            totalPages: result.data ? result.data.totalResults : 0
+            totalPages: result.data ? result.data.totalResults : 0,
+            facets: result.data ? result.data.facets : []
         };
-        console.log(dataObject);
+        console.log(dataObject.facets);
         return dataObject;
     }
 };

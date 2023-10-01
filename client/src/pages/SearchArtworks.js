@@ -1,9 +1,9 @@
 import React, {
-    useState,
-    useEffect,
-    forwardRef,
-    useRef,
-    useImperativeHandle,
+  useState,
+  useEffect,
+  forwardRef,
+  useRef,
+  useImperativeHandle,
 } from "react";
 import Select from "react-select";
 import "../css/common.css";
@@ -59,12 +59,12 @@ import {FaInfoCircle} from "react-icons/fa";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // Initialize the options for filters
-const COLLECTION_OPTIONS = [{value: "archaeology", label: "Archaeology"}];
-const CONTENT_TIER_OPTIONS = [{value: "4", label: "4"}];
-const TYPE_OPTIONS = [{value: "IMAGE", label: "Image"}];
-const COUNTRY_OPTIONS = [{value: "Europe", label: "Europe"}];
-const LANGUAGE_OPTIONS = [{value: "mul", label: "Multiple Languages"}];
-const PROVIDER_OPTIONS = [{value: "Daguerreobase", label: "Daguerreobase"}];
+const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }, {value: "art", label: "Art"}, {value: "fashion", label: "Fashion"}, {value: "Industrial Heritage", label: "Industrial Heritage"}, {value: "Manyscripts", label: "Manuscripts"}, {value: "Maps and Geography", label: "Maps and Geography"}, {value: "Music", label: "Music"}, {value: "Natural History", label: "Natrual History"}, {value: "Newspapers", label: "Newspapers"}, {value: "Photograph", label: "Photograph"}, {value: "Sports", label: "Sports"}, {value: "World War I", label: "World War I"},];
+const CONTENT_TIER_OPTIONS = [{ value: "4", label: "4" }];
+const TYPE_OPTIONS = [{ value: "IMAGE", label: "Image" }];
+const COUNTRY_OPTIONS = [{ value: "Europe", label: "Europe" }];
+const LANGUAGE_OPTIONS = [{ value: "mul", label: "Multiple Languages" }];
+const PROVIDER_OPTIONS = [{ value: "Daguerreobase", label: "Daguerreobase" }];
 const DATA_PROVIDER_OPTIONS = [
     {
         value: "National Science and Media Museum Bradford",
@@ -108,69 +108,101 @@ const SearchArtworks = ({
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [anyFilterSelected, setAnyFilterSelected] = useState(false);
 
-    // States for filters
-    const [selectedCollection, setSelectedCollection] = useState([]);
-    const [selectedContentTier, setSelectedContentTier] = useState([]);
-    const [selectedType, setSelectedType] = useState([]);
-    const [selectedCountry, setSelectedCountry] = useState([]);
-    const [selectedLanguage, setSelectedLanguage] = useState([]);
-    const [selectedProvider, setSelectedProvider] = useState([]);
-    const [selectedDataProvider, setSelectedDataProvider] = useState([]);
-    const [selectedColourPalette, setSelectedColourPalette] = useState([]);
-    const [selectedImageAspectRatio, setSelectedImageAspectRatio] = useState([]);
-    const [selectedImageSize, setSelectedImageSize] = useState([]);
-    const [selectedMimeType, setSelectedMimeType] = useState([]);
-    const [selectedRights, setSelectedRights] = useState([]);
-    const [totalRecords, setTotalRecords] = useState(0);
-    const [artworkData, setArtworkData] = useState([]);
-    const [showProgressbar, setShowProgressbar] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
-    const [galleryName, setGalleryName] = useState("");
-    const [galleryDescription, setGalleryDescription] = useState("");
-    const [galleryPrivate, setGalleryPrivate] = useState(false);
-    const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
-    const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] =
-        useState("");
-    const [userGalleries, setUserGalleries] = useState([]);
-    const [facets, setFacets] = useState([]);
-    const [keywordColors, setKeywordColors] = useState({});
-    const [keywords, setKeywords] = useState([]);
-    const [selectedKeywords, setSelectedKeywords] = useState([]);
+  // States for filters
+  const [selectedCollection, setSelectedCollection] = useState([]);
+  const [selectedContentTier, setSelectedContentTier] = useState([]);
+  const [selectedType, setSelectedType] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState([]);
+  const [selectedDataProvider, setSelectedDataProvider] = useState([]);
+  const [selectedColourPalette, setSelectedColourPalette] = useState([]);
+  const [selectedImageAspectRatio, setSelectedImageAspectRatio] = useState([]);
+  const [selectedImageSize, setSelectedImageSize] = useState([]);
+  const [selectedMimeType, setSelectedMimeType] = useState([]);
+  const [selectedRights, setSelectedRights] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [artworkData, setArtworkData] = useState([]);
+  const [showProgressbar, setShowProgressbar] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddModalChildOpen, setIsAddModalChildOpen] = useState(false);
+  const [galleryName, setGalleryName] = useState("");
+  const [galleryDescription, setGalleryDescription] = useState("");
+  const [galleryPrivate, setGalleryPrivate] = useState(false);
+  const [addedArtworkToGallery, setAddedArtworkToGallery] = useState("");
+  const [addedArtworkImageToGallery, setAddedArtworkImageToGallery] =
+    useState("");
+  const [userGalleries, setUserGalleries] = useState([]);
+  const [facets, setFacets] = useState([]);
+  const [keywordColors, setKeywordColors] = useState({});
+  const [keywords, setKeywords] = useState([]);
+  const [selectedKeywords, setSelectedKeywords] = useState([]);
 
-    const colorPalette = [
-        '#a6cee3',
-        '#1f78b4',
-        '#b2df8a',
-        '#33a02c',
-        '#fb9a99',
-        '#e31a1c',
-        '#fdbf6f',
-        '#ff7f00',
-        '#cab2d6',
-        '#6a3d9a',
-    ];
+  const colorPalette = [
+      '#a6cee3',
+      '#1f78b4',
+      '#b2df8a',
+      '#33a02c',
+      '#fb9a99',
+      '#e31a1c',
+      '#fdbf6f',
+      '#ff7f00',
+      '#cab2d6',
+      '#6a3d9a',
+  ];
+  const [savedArtworks, setSavedArtworks] = useState(() => {
+    if (localStorage.getItem("savedArtworks")) {
+      return JSON.parse(localStorage.getItem("savedArtworks"));
+    }
+    return {};
+  });
+// const countryOptions = facets.find(facet => facet.name === "COUNTRY")
+//                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
+//                              || [];
+const extractFacetOptions = (facets, facetName) => {
+  return facets.find(facet => facet.name === facetName)?.fields.map(field => ({ value: field.label, label: field.label })) || [];
+}
+const countryOptions = extractFacetOptions(facets, "COUNTRY");
+const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
+const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
+const yearOptions = extractFacetOptions(facets, "YEAR");
+const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
+const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
+const reusability = extractFacetOptions(facets, "REUSABILITY");
+const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
+const dataTypeOptions = extractFacetOptions(facets, "TYPE");
+const locationOptions = extractFacetOptions(facets, "LOCATION");
+const populationGroupOptions = extractFacetOptions(facets, "POPULATION_GROUP");
+const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
+const genderOptions = extractFacetOptions(facets, "GENDER");
+const disabilityStatusOptions = extractFacetOptions(facets, "DISABILITY_STATUS");
+const socioeconomicStatusOptions = extractFacetOptions(facets, "SOCIOECONOMIC_STATUS");
+const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
+const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
+const languageOptions = extractFacetOptions(facets, "LANGUAGE");
+const religionOptions = extractFacetOptions(facets, "RELIGION");
+const rights = extractFacetOptions(facets, "RIGHTS");
 
+useEffect(() => {
+  const fetchArtworks = async () => {
+      const response = await getRecords(
+          localStorage.getItem("currentQuery"),
+          filterQuery,
+          currentPage
+      );
+      const updatedArtworkData = (response?.artworkData || []).map(artwork => {
+          if (artwork.liked) {
+              artwork.isFavorited = true;
+          }
+          return artwork;
+      });
 
-    useEffect(() => {
-        const fetchArtworks = async () => {
-            const response = await getRecords(
-                localStorage.getItem("currentQuery"),
-                filterQuery,
-                currentPage
-            );
-            const updatedArtworkData = (response?.artworkData || []).map(artwork => {
-                if (artwork.liked) {
-                    artwork.isFavorited = true;
-                }
-                return artwork;
-            });
-
-            setFacets(response?.facets || {});
-            setArtworkData(updatedArtworkData);
-            setTotalRecords(response?.totalPages || 0);
-            console.log('called!')
-        };
+      setFacets(response?.facets || {});
+      setArtworkData(updatedArtworkData);
+      setTotalRecords(response?.totalPages || 0);
+      console.log("dataTypeOptions",dataTypeOptions);
+      console.log('called!')
+  };
 
         fetchArtworks();
         let allKeywords = searchedArtworks.flatMap(artwork => artwork.keywords || []);
@@ -196,26 +228,26 @@ const SearchArtworks = ({
             setAnyFilterSelected(true);
         }
 
-        if (selectedContentTier.length > 0) {
-            newFilterQuery += selectedContentTier
-                .map(
-                    (option) => "&qf=contentTier%3A" + encodeURIComponent(option.value)
-                )
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedContentTier.length > 0) {
+      newFilterQuery += selectedContentTier
+        .map(
+          (option) => "&qf=TYPE%3A" + encodeURIComponent(option.value)
+        )
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedType.length > 0) {
-            newFilterQuery += selectedType
-                .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedType.length > 0) {
+      newFilterQuery += selectedType
+        .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
         if (selectedCountry.length > 0) {
             newFilterQuery += selectedCountry
-                .map((option) => "&qf=COUNTRY%3A" + encodeURIComponent(option.value))
-                .join("");
+            .map((option) => "&reusability=" + encodeURIComponent(option.value))
+            .join("");
             setAnyFilterSelected(true);
         }
 
@@ -404,35 +436,35 @@ const SearchArtworks = ({
             return;
         }
 
-        let link = "https://www.europeana.eu/en/item" + artworkId;
-        window.open(link, "_blank");
-    };
+    let link = "https://www.europeana.eu/en/item" + artworkId;
+    window.open(link, "_blank");
+  };
 
-    const handleFavoriteClick = async (artwork) => {
-        if (localStorage.getItem("loggedInUser")) {
-            console.log("artwork.liked:", artwork.liked);
-            console.log("artwork.isFavorited:", artwork.isFavorited);
-            if (!artwork.isFavorited ) {
-                const response = await saveLikedArtworkIntoDataBase(artwork);
-            } else {
-                const response = await deleteLikedArtworkFromDataBase(
-                    artwork.artworkId
-                );
-            }
-        }
-
-        let artworkId = artwork.artworkId;
-        setArtworkData((prevArtworkData) =>
-            prevArtworkData.map((artwork) =>
-                artwork.artworkId === artworkId
-                    ? {
-                        ...artwork,
-                        isFavorited: !artwork.isFavorited,
-                        liked: !artwork.liked,
-                    }
-                    : artwork
-            )
+  const handleFavoriteClick = async (artwork) => {
+    if (localStorage.getItem("loggedInUser")) {
+      console.log("artwork.liked:", artwork.liked);
+      console.log("artwork.isFavorited:", artwork.isFavorited);
+      if (!(artwork.isFavorited ||artwork.liked)) {
+        const response = await saveLikedArtworkIntoDataBase(artwork);
+      } else {
+        const response = await deleteLikedArtworkFromDataBase(
+          artwork.artworkId
         );
+      }
+    }
+
+    let artworkId = artwork.artworkId;
+    setArtworkData((prevArtworkData) =>
+        prevArtworkData.map((artwork) =>
+            artwork.artworkId === artworkId
+                ? {
+                  ...artwork,
+                  isFavorited: !artwork.isFavorited,
+                  liked: !artwork.liked,
+                }
+                : artwork
+        )
+    );
 
         console.log("artwork.liked after:", artwork.liked);
         console.log("artwork.isFavorited:", artwork.isFavorited);
@@ -502,36 +534,36 @@ const SearchArtworks = ({
                                     left: 0,
                                     right: 0,
 
-                                    margin: "auto",
-                                }}
-                            />
-                        </div>
-                    ) : (
-                        artworkData.map((artwork) => (
-                            <Col xs={12} md={6}>
-                                <Card className="artwork-card">
-                                    <Row
-                                        onClick={(event) =>
-                                            handleCardClick(artwork.artworkId, event)
-                                        }
-                                    >
-                                        <Col xs={7}>
-                                            <Card.Body>
-                                                <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
-                                                <Card.Title>
-                                                    {artwork.title == "null" ? "" : artwork.title}
-                                                </Card.Title>
-                                                <Card.Text>
-                                                    {artwork.description != null &&
-                                                    artwork.description != ""
-                                                        ? artwork.description.slice(0, 238) + "..."
-                                                        : ""}
-                                                </Card.Text>
-                                                <div
-                                                    className={
-                                                        "artwork-card-description data-and-buttons-wrapper d-flex"
-                                                    }
-                                                >
+                  margin: "auto",
+                }}
+              />
+            </div>
+          ) : (
+            artworkData.map((artwork) => (
+              <Col xs={12} md={6}>
+                <Card className="artwork-card">
+                  <Row
+                    onClick={(event) =>
+                      handleCardClick(artwork.artworkId, event)
+                    }
+                  >
+                    <Col xs={5}>
+                      <Card.Body>
+                        <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
+                        <Card.Title>
+                          {artwork.title == "null" ? "" : artwork.title}
+                        </Card.Title>
+                        <Card.Text>
+                          {artwork.description != null &&
+                          artwork.description != ""
+                            ? artwork.description.slice(0, 238) + "..."
+                            : ""}
+                        </Card.Text>
+                        <div
+                          className={
+                            "artwork-card-description data-and-buttons-wrapper d-flex"
+                          }
+                        >
                           <span className="d-inline-flex align-items-center text-uppercase">
                             <WorkspacePremiumIcon
                                 sx={{fontSize: ".875rem"}}
@@ -555,62 +587,67 @@ const SearchArtworks = ({
                               {artwork.type}
                             </span>
                           </span>
-                                                </div>
-                                            </Card.Body>
-                                        </Col>
-                                        <Col xs={4}>
-                                            <Grid container>
-                                                <Grid item xs={12}>
-                                                    {artwork.image &&
-                                                    artwork.image !== "No image available" ? (
-                                                        <div className="card-image-wrapper">
-                                                            <Card.Img
-                                                                src={artwork.image}
-                                                                alt={`The image for ${artwork.title}`}
-                                                                className="card-image"
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="card-image-wrapper">
-                                                            <Card.Img
-                                                                src="./url.png" // Provide the path to the fallback image in the /public directory
-                                                                alt="Fallback"
-                                                                className="card-image"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </Grid>
-                                                <Grid item xs={12} style={{marginTop:'10px'}}>
-                                                    <div
-                                                        className={"artwork-card-description data-and-buttons-wrapper d-flex mr-2"}>
+                        </div>
+                      </Card.Body>
+                    </Col>
+                    <Col xs={4}>
+                    <Grid container>
+                          <Grid item xs={12}>
+                        {artwork.image &&
+                        artwork.image !== "No image available" ? (
+                          <div className="card-image-wrapper">
+                            <Card.Img
+                              src={artwork.image}
+                              alt={`The image for ${artwork.title}`}
+                              className="card-image"
+                            />
+                          </div>
+                        ) : (
+                          <div className="card-image-wrapper">
+                            <Card.Img
+                              src="./url.png" // Provide the path to the fallback image in the /public directory
+                              alt="Fallback"
+                              className="card-image"
+                            />
+                          </div>
+                        )}
+                          </Grid>
+                        <Grid item xs={12} style={{marginTop:'10px'}}>
+                        <div
+                          className={
+                            "artwork-card-description data-and-buttons-wrapper d-flex mr-2"
+                          }
+                        >
                           <span
-                              className="d-inline-flex align-items-center text-uppercase hover-effect"
-                              onClick={() =>
-                                  toggleAddModal(artwork, artwork.image)
-                              }
+                            className="d-inline-flex align-items-center text-uppercase hover-effect"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
                           >
-                            <AddCircleIcon sx={{fontSize: ".875rem"}}/>
+                            <AddCircleIcon sx={{ fontSize: ".875rem" }} />
                             <span className="license-label-text buttons-wrapper-icon">
-                              Save
+                              {savedArtworks[artwork.artworkId]
+                                ? "Saved"
+                                : "Save"}
                             </span>
                           </span>
 
-                                                        <span
-                                                            className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                                                                (artwork.isFavorited == true) ? "Liked-label" : "Like-label"
-                                                            }`}
-                                                            onClick={() => handleFavoriteClick(artwork)}
-                                                        >
-                            {(artwork.isFavorited == true ) ? (
+                          <span
+                            className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
+                                (artwork.isFavorited==true ||artwork.liked) ? "Liked-label" : "Like-label"
+                            }`}
+                            onClick={() => handleFavoriteClick(artwork)}
+                          >
+                            {(artwork.isFavorited==true ||artwork.liked) ? (
 
-                                <>
-                                    <FavoriteIcon
-                                        sx={{fontSize: ".875rem", color: "red"}}
-                                    />
-                                    <span
-                                        className="Like-label-text buttons-wrapper-icon"
-                                        style={{color: "red"}}
-                                    >
+                              <>
+                                <FavoriteIcon
+                                  sx={{ fontSize: ".875rem", color: "red" }}
+                                />
+                                <span
+                                  className="Like-label-text buttons-wrapper-icon"
+                                  style={{ color: "red" }}
+                                >
                                   Liked
                                 </span>
                                 </>
@@ -625,8 +662,8 @@ const SearchArtworks = ({
                                 </>
                             )}
                           </span>
-                                                    </div>
-                                                </Grid>
+                        </div>
+                        </Grid>
                                                 <Grid item xs={12}>
 
                                                 </Grid>
@@ -661,17 +698,15 @@ const SearchArtworks = ({
                                                 })}
                                             </div>
                                         </Col>
-                                    </Row>
-
-
-                                </Card>
-                            </Col>
-                        ))
-                    )}
-                </Row>
-            </Container>
-        );
-    });
+                  </Row>
+                </Card>
+              </Col>
+            ))
+          )}
+        </Row>
+      </Container>
+    );
+  });
 
     const CardView = forwardRef((props, ref) => {
         const [hoveredCard, setHoveredCard] = useState(null);
@@ -696,105 +731,105 @@ const SearchArtworks = ({
             },
         }));
 
-        return (
-            <Container className="card-container-grid mx-0">
-                {showProgressbar ? (
-                    <div className={"progressbarBox"}>
-                        <CircularProgress
-                            size={20}
-                            style={{
-                                color: "black",
-                                width: 20,
-                                height: 20,
-                                position: "absolute",
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
+    return (
+      <Container className="card-container-grid">
+        {showProgressbar ? (
+          <div className={"progressbarBox"}>
+            <CircularProgress
+              size={20}
+              style={{
+                color: "black",
+                width: 20,
+                height: 20,
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
 
-                                margin: "auto",
-                            }}
-                        />
+                margin: "auto",
+              }}
+            />
+          </div>
+        ) : (
+          artworkData.map((artwork) => (
+            <Card
+              key={artwork.artworkId}
+              className="artwork-card-grid"
+              onClick={(event) => handleCardClick(artwork.artworkId, event)}
+              onMouseEnter={() => handleCardHover(artwork.artworkId)}
+              onMouseLeave={handleCardLeave}
+            >
+              {/* Card image */}
+              {artwork.image && artwork.image !== "No image available" ? (
+                <div className={"temp"}>
+                  <Card.Img
+                    className="card-image-grid"
+                    src={artwork.image}
+                    alt={`The image for ${artwork.title}`}
+                    variant="top"
+                  />
+                  {hoveredCard === artwork.artworkId && (
+                    <div className="icon-container">
+                      <AddCircleIcon
+                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
+                        className="hover-icon"
+                        onClick={() => toggleAddModal(artwork, artwork.image)}
+                      />
+                      <FavoriteIcon
+                        onClick={() => handleFavoriteClick(artwork)}
+                        sx={{
+                          fontSize: "10px",
+                          height: "36px",
+                          width: "36px",
+                          color: (artwork.isFavorited ==true||artwork.liked)
+                            ? "#fff !important"
+                            : "#4d4d4d !important",
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
+                            : "#fff !important",
+                        }}
+                        className="hover-icon"
+                      />
                     </div>
-                ) : (
-                    artworkData.map((artwork) => (
-                        <Card
-                            key={artwork.artworkId}
-                            className="artwork-card-grid"
-                            onClick={(event) => handleCardClick(artwork.artworkId, event)}
-                            onMouseEnter={() => handleCardHover(artwork.artworkId)}
-                            onMouseLeave={handleCardLeave}
-                        >
-                            {/* Card image */}
-                            {artwork.image && artwork.image !== "No image available" ? (
-                                <div className={"temp"}>
-                                    <Card.Img
-                                        className="card-image-grid"
-                                        src={artwork.image}
-                                        alt={`The image for ${artwork.title}`}
-                                        variant="top"
-                                    />
-                                    {hoveredCard === artwork.artworkId && (
-                                        <div className="icon-container">
-                                            <AddCircleIcon
-                                                sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                className="hover-icon"
-                                                onClick={() => toggleAddModal(artwork, artwork.image)}
-                                            />
-                                            <FavoriteIcon
-                                                onClick={() => handleFavoriteClick(artwork)}
-                                                sx={{
-                                                    fontSize: "10px",
-                                                    height: "36px",
-                                                    width: "36px",
-                                                    color: (artwork.isFavorited == true )
-                                                        ? "#fff !important"
-                                                        : "#4d4d4d !important",
-                                                    backgroundColor: (artwork.isFavorited == true )
-                                                        ? "red !important"
-                                                        : "#fff !important",
-                                                }}
-                                                className="hover-icon"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div>
-                                    <Card.Img
-                                        className="card-image-grid"
-                                        src="./url.png"
-                                        alt="Fallback"
-                                        variant="top"
-                                    />
-                                    {hoveredCard === artwork.artworkId && (
-                                        <div className="icon-container">
-                                            <AddCircleIcon
-                                                sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                className="hover-icon"
-                                                onClick={() => toggleAddModal(artwork, artwork.image)}
-                                            />
-                                            <FavoriteIcon
-                                                onClick={() => handleFavoriteClick(artwork)}
-                                                sx={{
-                                                    fontSize: "10px",
-                                                    height: "36px",
-                                                    width: "36px",
-                                                    color: (artwork.isFavorited == true )
-                                                        ? "#fff !important"
-                                                        : "#4d4d4d !important",
-                                                    backgroundColor: (artwork.isFavorited == true )
-                                                        ? "red !important"
-                                                        : "#fff !important",
-                                                }}
-                                                className="hover-icon"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {/* Card body */}
-                            <Card.Body>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <Card.Img
+                    className="card-image-grid"
+                    src="./url.png"
+                    alt="Fallback"
+                    variant="top"
+                  />
+                  {hoveredCard === artwork.artworkId && (
+                    <div className="icon-container">
+                      <AddCircleIcon
+                        sx={{ fontSize: "10px", height: "36px", width: "36px" }}
+                        className="hover-icon"
+                        onClick={() => toggleAddModal(artwork, artwork.image)}
+                      />
+                      <FavoriteIcon
+                        onClick={() => handleFavoriteClick(artwork)}
+                        sx={{
+                          fontSize: "10px",
+                          height: "36px",
+                          width: "36px",
+                          color: (artwork.isFavorited ==true||artwork.liked)
+                              ? "#fff !important"
+                            : "#4d4d4d !important",
+                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              ? "red !important"
+                            : "#fff !important",
+                        }}
+                        className="hover-icon"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Card body */}
+              <Card.Body>
                                 <Card.Title>
                                     {artwork.title == "null" ? "" : artwork.title}
                                 </Card.Title>
@@ -829,12 +864,12 @@ const SearchArtworks = ({
                                     </div>
                                 </Card.Text>
                             </Card.Body>
-                        </Card>
-                    ))
-                )}
-            </Container>
-        );
-    });
+            </Card>
+          ))
+        )}
+      </Container>
+    );
+  });
 
     const MosaicView = forwardRef((props, ref) => {
         const [hoveredCard, setHoveredCard] = useState(null);
@@ -859,37 +894,37 @@ const SearchArtworks = ({
             },
         }));
 
-        return (
-            <Container className="card-container-grid mx-0">
-                {showProgressbar ? (
-                    <div className={"progressbarBox"}>
-                        <CircularProgress
-                            size={20}
-                            style={{
-                                color: "black",
-                                width: 20,
-                                height: 20,
-                                position: "absolute",
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
+    return (
+      <Container className="card-container-grid">
+        {showProgressbar ? (
+          <div className={"progressbarBox"}>
+            <CircularProgress
+              size={20}
+              style={{
+                color: "black",
+                width: 20,
+                height: 20,
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
 
-                                margin: "auto",
-                            }}
-                        />
-                    </div>
-                ) : (
-                    artworkData.map((artwork) => (
-                        <Card
-                            key={artwork.artworkId}
-                            className="artwork-card-grid"
-                            onMouseEnter={() => handleCardHover(artwork.artworkId)}
-                            onMouseLeave={handleCardLeave}
-                            onClick={(event) => handleCardClick(artwork.artworkId, event)}
-                        >
-                            {/* Card image */}
-                            <Grid container>
+                margin: "auto",
+              }}
+            />
+          </div>
+        ) : (
+          artworkData.map((artwork) => (
+            <Card
+              key={artwork.artworkId}
+              className="artwork-card-grid"
+              onMouseEnter={() => handleCardHover(artwork.artworkId)}
+              onMouseLeave={handleCardLeave}
+              onClick={(event) => handleCardClick(artwork.artworkId, event)}
+            >
+              {/* Card image */}
+              <Grid container>
                                 <Grid item xs={12}>
                                     {artwork.image && artwork.image !== "No image available" ? (
 
@@ -994,11 +1029,11 @@ const SearchArtworks = ({
 
 
                         </Card>
-                    ))
-                )}
-            </Container>
-        );
-    });
+          ))
+        )}
+      </Container>
+    );
+  });
 
     const resetAllFilters = () => {
         setSelectedCollection([]);
@@ -1100,136 +1135,136 @@ const SearchArtworks = ({
                     />
                 </Form.Group>
 
-                {/* Content Tier Filter */}
-                <Form.Group controlId="contentTierFilter">
-                    <Form.Label className="label">TYPE OF MEDIA</Form.Label>
-                    <FilterChip
-                        selectedValues={selectedContentTier}
-                        onRemove={() => setSelectedContentTier([])}
-                    />
-                    <Select
-                        options={CONTENT_TIER_OPTIONS}
-                        isMulti
-                        value={selectedContentTier}
-                        onChange={(selectedOption) =>
-                            setSelectedContentTier(selectedOption)
-                        }
-                    />
-                </Form.Group>
+        {/* Content Tier Filter */}
+        <Form.Group controlId="contentTierFilter">
+          <Form.Label className="label">TYPE OF MEDIA</Form.Label>
+          <FilterChip
+            selectedValues={selectedContentTier}
+            onRemove={() => setSelectedContentTier([])}
+          />
+          <Select
+            options={dataTypeOptions}
+            isMulti
+            value={selectedContentTier}
+            onChange={(selectedOption) =>
+              setSelectedContentTier(selectedOption)
+            }
+          />
+        </Form.Group>
 
-                {/* Type Filter */}
-                <Form.Group controlId="typeFilter">
-                    <Form.Label className="label">CAN I USE THIS?</Form.Label>
-                    <FilterChip
-                        selectedValues={selectedType}
-                        onRemove={() => setSelectedType([])}
-                    />
-                    <Select
-                        options={TYPE_OPTIONS}
-                        isMulti
-                        value={selectedType}
-                        onChange={(selectedOption) => setSelectedType(selectedOption)}
-                    />
-                </Form.Group>
+        {/* Type Filter */}
+        <Form.Group controlId="typeFilter">
+          <Form.Label className="label">CAN I USE THIS?</Form.Label>
+          <FilterChip
+            selectedValues={selectedType}
+            onRemove={() => setSelectedType([])}
+          />
+          <Select
+            options={reusability}
+            isMulti
+            value={selectedType}
+            onChange={(selectedOption) => setSelectedType(selectedOption)}
+          />
+        </Form.Group>
 
-                {/* Additional Filters */}
-                <button
-                    aria-controls="additional-filters"
-                    type="button"
-                    className="btn search-toggle btn-link strong"
-                    onClick={() => setShowAdditionalFilters(!showAdditionalFilters)}
-                >
-                    {showAdditionalFilters
-                        ? "- HIDE ADDITIONAL FILTERS"
-                        : "+ SHOW ADDITIONAL FILTERS"}
-                </button>
-                {showAdditionalFilters && (
-                    <div id="additional-filters">
-                        {/* Country Filter */}
-                        <Form.Group controlId="countryFilter">
-                            <Form.Label className="label">Country</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedCountry}
-                                onRemove={() => setSelectedCountry([])}
-                            />
-                            <Select
-                                options={COUNTRY_OPTIONS}
-                                isMulti
-                                value={selectedCountry}
-                                onChange={(selectedOption) =>
-                                    setSelectedCountry(selectedOption)
-                                }
-                            />
-                        </Form.Group>
+        {/* Additional Filters */}
+        <button
+          aria-controls="additional-filters"
+          type="button"
+          className="btn search-toggle btn-link strong"
+          onClick={() => setShowAdditionalFilters(!showAdditionalFilters)}
+        >
+          {showAdditionalFilters
+            ? "- HIDE ADDITIONAL FILTERS"
+            : "+ SHOW ADDITIONAL FILTERS"}
+        </button>
+        {showAdditionalFilters && (
+          <div id="additional-filters">
+            {/* Country Filter */}
+            <Form.Group controlId="countryFilter">
+              <Form.Label className="label">Country</Form.Label>
+              <FilterChip
+                selectedValues={selectedCountry}
+                onRemove={() => setSelectedCountry([])}
+              />
+              <Select
+                options={countryOptions}
+                isMulti
+                value={selectedCountry}
+                onChange={(selectedOption) =>
+                  setSelectedCountry(selectedOption)
+                }
+              />
+            </Form.Group>
 
-                        {/* Language Filter */}
-                        <Form.Group controlId="languageFilter">
-                            <Form.Label className="label">Language</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedLanguage}
-                                onRemove={() => setSelectedLanguage([])}
-                            />
-                            <Select
-                                options={LANGUAGE_OPTIONS}
-                                isMulti
-                                value={selectedLanguage}
-                                onChange={(selectedOption) =>
-                                    setSelectedLanguage(selectedOption)
-                                }
-                            />
-                        </Form.Group>
+            {/* Language Filter */}
+            <Form.Group controlId="languageFilter">
+              <Form.Label className="label">Language</Form.Label>
+              <FilterChip
+                selectedValues={selectedLanguage}
+                onRemove={() => setSelectedLanguage([])}
+              />
+              <Select
+                options={languageOptions}
+                isMulti
+                value={selectedLanguage}
+                onChange={(selectedOption) =>
+                  setSelectedLanguage(selectedOption)
+                }
+              />
+            </Form.Group>
 
-                        {/* Provider Filter */}
-                        <Form.Group controlId="providerFilter">
-                            <Form.Label className="label">Provider</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedProvider}
-                                onRemove={() => setSelectedProvider([])}
-                            />
-                            <Select
-                                options={PROVIDER_OPTIONS}
-                                isMulti
-                                value={selectedProvider}
-                                onChange={(selectedOption) =>
-                                    setSelectedProvider(selectedOption)
-                                }
-                            />
-                        </Form.Group>
+            {/* Provider Filter */}
+            <Form.Group controlId="providerFilter">
+              <Form.Label className="label">AGGREGATOR</Form.Label>
+              <FilterChip
+                selectedValues={selectedProvider}
+                onRemove={() => setSelectedProvider([])}
+              />
+              <Select
+                options={ProviderOptions}
+                isMulti
+                value={selectedProvider}
+                onChange={(selectedOption) =>
+                  setSelectedProvider(selectedOption)
+                }
+              />
+            </Form.Group>
 
-                        {/* Data Provider Filter */}
-                        <Form.Group controlId="dataProviderFilter">
-                            <Form.Label className="label">Data Provider</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedDataProvider}
-                                onRemove={() => setSelectedDataProvider([])}
-                            />
-                            <Select
-                                options={DATA_PROVIDER_OPTIONS}
-                                isMulti
-                                value={selectedDataProvider}
-                                onChange={(selectedOption) =>
-                                    setSelectedDataProvider(selectedOption)
-                                }
-                            />
-                        </Form.Group>
+            {/* Data Provider Filter */}
+            <Form.Group controlId="dataProviderFilter">
+              <Form.Label className="label">PROVIDING INSTIUTION</Form.Label>
+              <FilterChip
+                selectedValues={selectedDataProvider}
+                onRemove={() => setSelectedDataProvider([])}
+              />
+              <Select
+                options={dataProviderOptions}
+                isMulti
+                value={selectedDataProvider}
+                onChange={(selectedOption) =>
+                  setSelectedDataProvider(selectedOption)
+                }
+              />
+            </Form.Group>
 
-                        {/* Colour Palette Filter */}
-                        <Form.Group controlId="colourPaletteFilter">
-                            <Form.Label className="label">Colour Palette</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedColourPalette}
-                                onRemove={() => setSelectedColourPalette([])}
-                            />
-                            <Select
-                                className="dropdown-toggle"
-                                options={COLOUR_PALETTE_OPTIONS}
-                                isMulti
-                                value={selectedColourPalette}
-                                onChange={(selectedOption) =>
-                                    setSelectedColourPalette(selectedOption)
-                                }
-                            />
-                        </Form.Group>
+            {/* Colour Palette Filter */}
+            <Form.Group controlId="colourPaletteFilter">
+              <Form.Label className="label">COLOUR</Form.Label>
+              <FilterChip
+                selectedValues={selectedColourPalette}
+                onRemove={() => setSelectedColourPalette([])}
+              />
+              <Select
+                className="dropdown-toggle"
+                options={colourPaletteOptions}
+                isMulti
+                value={selectedColourPalette}
+                onChange={(selectedOption) =>
+                  setSelectedColourPalette(selectedOption)
+                }
+              />
+            </Form.Group>
 
                         {/* Image Aspect Ratio Filter */}
                         <Form.Group controlId="imageAspectRatioFilter">
@@ -1375,18 +1410,29 @@ const SearchArtworks = ({
 
     const childRef = useRef();
 
-    const toggleAddModal = async (artwork, image) => {
-        if (localStorage.getItem("loggedInUser")) {
-            setAddedArtworkToGallery(artwork);
-            setAddedArtworkImageToGallery(image);
-            setIsAddModalOpen(!isAddModalOpen);
-            const response = await getGalleries();
-            setUserGalleries(response.galleries);
-        }
-    };
-    const toggleAddChildModal = (artworkId) => {
-        setIsAddModalChildOpen(!isAddModalChildOpen);
-    };
+  const toggleAddModal = async (artwork, image) => {
+    if (localStorage.getItem("loggedInUser")) {
+      setAddedArtworkToGallery(artwork);
+      setAddedArtworkImageToGallery(image);
+      setIsAddModalOpen(!isAddModalOpen);
+      const response = await getGalleries();
+      setUserGalleries(response.galleries);
+    }
+    let updatedSavedArtworks = { ...savedArtworks };
+
+    if (localStorage.getItem("savedArtworks")) {
+      updatedSavedArtworks = JSON.parse(localStorage.getItem("savedArtworks"));
+    }
+
+    updatedSavedArtworks[artwork.artworkId] =
+      !updatedSavedArtworks[artwork.artworkId];
+    localStorage.setItem("savedArtworks", JSON.stringify(updatedSavedArtworks));
+
+    setSavedArtworks(updatedSavedArtworks);
+  };
+  const toggleAddChildModal = (artworkId) => {
+    setIsAddModalChildOpen(!isAddModalChildOpen);
+  };
 
     const handleGalleryNameChange = (e) => {
         let value = e.target.value;
@@ -1541,127 +1587,127 @@ const SearchArtworks = ({
         );
     };
 
-    return (
-        <>
-            {localStorage.getItem("firstRun") != null &&
-            localStorage.getItem("firstRun") != "true" ? (
-                <Container fluid className="search-container mx-0 px-8">
-                    <Row>
-                        <Col xs={12} sm={10}>
-                            <Row>
-                                <Col xs={12} sm={10}>
-                                    <h5 className="padtop context-label">
-                                        {totalRecords > 5
-                                            ? `${totalRecords.toLocaleString()} RESULTS `
-                                            : ""}
-                                        {localStorage.getItem("currentQuery") ? (
-                                            <>
-                                                <span>FOR</span>
-                                                <StyledChip
-                                                    style={{
-                                                        backgroundColor: "#daeaf8",
-                                                        color: "#4d4d4d",
-                                                        margin: "6px",
-                                                        borderRadius: "2.25rem",
-                                                    }}
-                                                    label={localStorage.getItem("currentQuery")}
-                                                    onDelete={() => childRef.current.handleDelete()}
-                                                />
-                                            </>
-                                        ) : (
-                                            <div></div>
-                                        )}
-                                    </h5>
-                                </Col>
-                                <Col xs={12} sm={2}>
-                                    <div className="button-group">
-                                        <div className="icon-group">
-                                            <FormatListBulletedIcon
-                                                className={view === "list" ? "selected-icon" : "icon"}
-                                                onClick={() => setView("list")}
-                                            />
-                                            <GridViewIcon
-                                                className={view === "grid" ? "selected-icon" : "icon"}
-                                                onClick={() => setView("grid")}
-                                            />
-                                            <AutoAwesomeMosaicOutlined
-                                                className={view === "mosaic" ? "selected-icon" : "icon"}
-                                                onClick={() => setView("mosaic")}
-                                            />
-                                        </div>
-                                    </div>
-                                </Col>
-                            </Row>
-                            <div className={"card-container"}>
-                                {view === "grid" ? (
-                                    <CardView ref={childRef}/>
-                                ) : view === "list" ? (
-                                    <ListView ref={childRef}/>
-                                ) : (
-                                    <MosaicView ref={childRef}/>
-                                )}
-                            </div>
-                            <Dialog
-                                sx={{top: "-40%", "& .MuiBackdrop-root": {opacity: "0.9"}}}
-                                open={isAddModalOpen}
-                                TransitionComponent={Transition}
-                                keepMounted
-                                onClose={() => setIsAddModalOpen(!isAddModalOpen)}
-                                aria-describedby="alert-dialog-slide-description"
-                            >
-                                <DialogTitle>{"Add to gallery"}</DialogTitle>
-                                <DialogContent>
-                                    <DialogContentText id="alert-dialog-slide-description">
-                                        <Button
-                                            style={{
-                                                maxWidth: "750px",
-                                                minHeight: "55px",
-                                                minWidth: "550px",
-                                                display: "flex",
-                                                justifyContent: "left",
-                                                alignItems: "center",
-                                                marginBottom: "20px",
-                                                color: "#000"
-                                            }}
-                                            fullWidth={true}
-                                            onClick={(event) => {
-                                                event.preventDefault();
-                                                setIsAddModalChildOpen(!isAddModalChildOpen);
-                                            }}
-                                        >
-                                            CREATE NEW GALLERY
-                                        </Button>
-                                        <Grid container spacing={2}>
-                                            {userGalleries.map((gallery) => (
-                                                <GalleryButton
-                                                    gallery={gallery}
-                                                    setIsAddModalChildOpen={setIsAddModalChildOpen}
-                                                />
-                                            ))}
-                                        </Grid>
-                                    </DialogContentText>
-                                </DialogContent>
-                                {/*<DialogActions>*/}
-                                <Button
-                                    style={{
-                                        border: "2px solid black",
-                                        backgroundColor: "white",
-                                        cursor: "pointer",
-                                        borderColor: "#2196F3",
-                                        color: "dodgerblue",
-                                        maxWidth: "75px",
-                                        minWidth: "55px",
-                                        marginLeft: "25px",
-                                        marginTop: "25px",
-                                        marginBottom: "30px",
-                                    }}
-                                    variant="outlined"
-                                    onClick={() => setIsAddModalOpen(!isAddModalOpen)}
-                                >
-                                    Close
-                                </Button>
-                                {/*</DialogActions>*/}
-                            </Dialog>
+  return (
+    <>
+      {localStorage.getItem("firstRun") != null &&
+      localStorage.getItem("firstRun") != "true" ? (
+        <Container fluid className="search-container mx-0 px-8">
+          <Row>
+            <Col xs={12} sm={10}>
+              <Row>
+                <Col xs={12} sm={10}>
+                  <h5 className="padtop context-label">
+                    {totalRecords > 5
+                      ? `${totalRecords.toLocaleString()} RESULTS `
+                      : ""}
+                    {localStorage.getItem("currentQuery") ? (
+                      <>
+                        <span>FOR</span>
+                        <StyledChip
+                          style={{
+                            backgroundColor: "#daeaf8",
+                            color: "#4d4d4d",
+                            margin: "6px",
+                            borderRadius: "2.25rem",
+                          }}
+                          label={localStorage.getItem("currentQuery")}
+                          onDelete={() => childRef.current.handleDelete()}
+                        />
+                      </>
+                    ) : (
+                      <div></div>
+                    )}
+                  </h5>
+                </Col>
+                <Col xs={12} sm={2}>
+                  <div className="button-group">
+                    <div className="icon-group">
+                      <FormatListBulletedIcon
+                        className={view === "list" ? "selected-icon" : "icon"}
+                        onClick={() => setView("list")}
+                      />
+                      <GridViewIcon
+                        className={view === "grid" ? "selected-icon" : "icon"}
+                        onClick={() => setView("grid")}
+                      />
+                      <AutoAwesomeMosaicOutlined
+                        className={view === "mosaic" ? "selected-icon" : "icon"}
+                        onClick={() => setView("mosaic")}
+                      />
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+              <div className={"card-container"}>
+                {view === "grid" ? (
+                  <CardView ref={childRef} />
+                ) : view === "list" ? (
+                  <ListView ref={childRef} />
+                ) : (
+                  <MosaicView ref={childRef} />
+                )}
+              </div>
+              <Dialog
+                sx={{ top: "-40%", "& .MuiBackdrop-root": { opacity: "0.9" } }}
+                open={isAddModalOpen}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={() => setIsAddModalOpen(!isAddModalOpen)}
+                aria-describedby="alert-dialog-slide-description"
+              >
+                <DialogTitle>{"Add to gallery"}</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-slide-description">
+                    <Button
+                      style={{
+                        maxWidth: "750px",
+                        minHeight: "55px",
+                        minWidth: "550px",
+                        display: "flex",
+                        justifyContent: "left",
+                        alignItems: "center",
+                        marginBottom: "20px",
+                        color: "#000"
+                      }}
+                      fullWidth={true}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setIsAddModalChildOpen(!isAddModalChildOpen);
+                      }}
+                    >
+                      CREATE NEW GALLERY
+                    </Button>
+                    <Grid container spacing={2}>
+                      {userGalleries.map((gallery) => (
+                        <GalleryButton
+                          gallery={gallery}
+                          setIsAddModalChildOpen={setIsAddModalChildOpen}
+                        />
+                      ))}
+                    </Grid>
+                  </DialogContentText>
+                </DialogContent>
+                {/*<DialogActions>*/}
+                <Button
+                  style={{
+                    border: "2px solid black",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    borderColor: "#2196F3",
+                    color: "dodgerblue",
+                    maxWidth: "75px",
+                    minWidth: "55px",
+                    marginLeft: "25px",
+                    marginTop: "25px",
+                    marginBottom: "30px",
+                  }}
+                  variant="outlined"
+                  onClick={() => setIsAddModalOpen(!isAddModalOpen)}
+                >
+                  Close
+                </Button>
+                {/*</DialogActions>*/}
+              </Dialog>
 
                             <Dialog
                                 sx={{top: "-5%", "& .MuiBackdrop-root": {opacity: "0.9"}}}
