@@ -619,7 +619,11 @@ useEffect(() => {
                           }
                         >
                           <span
-                            className="d-inline-flex align-items-center text-uppercase hover-effect"
+                            className={`d-inline-flex align-items-center text-uppercase hover-effect ${
+                              savedArtworks[artwork.artworkId]
+                                ? "green-label"
+                                : ""
+                            }`}
                             onClick={() =>
                               toggleAddModal(artwork, artwork.image)
                             }
