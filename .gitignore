@@ -27,3 +27,5 @@ yarn-error.log*
 config/connection.js
 server/package-lock.json
 client/package-lock.json
+package-lock.json
+client/package-lock.json
