@@ -165,8 +165,16 @@ const SearchArtworks = ({
 //                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
 //                              || [];
 const extractFacetOptions = (facets, facetName) => {
-  return facets.find(facet => facet.name === facetName)?.fields.map(field => ({ value: field.label, label: field.label })) || [];
-}
+  return (
+    facets
+      .find(facet => facet.name === facetName)?.fields
+      .map(field => ({
+        value: field.label,
+        label: `${field.label} (${field.count})`, // Modified this line
+        count: field.count
+      })) || []
+  );
+};
 const countryOptions = extractFacetOptions(facets, "COUNTRY");
 const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
 const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
