@@ -68,7 +68,20 @@ import { FaInfoCircle } from "react-icons/fa";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // Initialize the options for filters
-const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }, {value: "art", label: "Art"}, {value: "fashion", label: "Fashion"}, {value: "Industrial Heritage", label: "Industrial Heritage"}, {value: "Manyscripts", label: "Manuscripts"}, {value: "Maps and Geography", label: "Maps and Geography"}, {value: "Music", label: "Music"}, {value: "Natural History", label: "Natrual History"}, {value: "Newspapers", label: "Newspapers"}, {value: "Photograph", label: "Photograph"}, {value: "Sports", label: "Sports"}, {value: "World War I", label: "World War I"},];
+const COLLECTION_OPTIONS = [
+  { value: "archaeology", label: "Archaeology" },
+  { value: "art", label: "Art" },
+  { value: "fashion", label: "Fashion" },
+  { value: "Industrial Heritage", label: "Industrial Heritage" },
+  { value: "Manyscripts", label: "Manuscripts" },
+  { value: "Maps and Geography", label: "Maps and Geography" },
+  { value: "Music", label: "Music" },
+  { value: "Natural History", label: "Natrual History" },
+  { value: "Newspapers", label: "Newspapers" },
+  { value: "Photograph", label: "Photograph" },
+  { value: "Sports", label: "Sports" },
+  { value: "World War I", label: "World War I" },
+];
 const CONTENT_TIER_OPTIONS = [{ value: "4", label: "4" }];
 const TYPE_OPTIONS = [{ value: "IMAGE", label: "Image" }];
 const COUNTRY_OPTIONS = [{ value: "Europe", label: "Europe" }];
@@ -108,6 +121,7 @@ const SearchArtworks = ({
   searchedArtworks,
   filters,
   onFilterChange,
+  onChipDelete,
 }) => {
   const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
   const [view, setView] = useState("list");
@@ -161,41 +175,49 @@ const SearchArtworks = ({
     }
     return {};
   });
-// const countryOptions = facets.find(facet => facet.name === "COUNTRY")
-//                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
-//                              || [];
-const extractFacetOptions = (facets, facetName) => {
-  return (
-    facets
-      .find(facet => facet.name === facetName)?.fields
-      .map(field => ({
-        value: field.label,
-        label: `${field.label} (${field.count})`, // Modified this line
-        count: field.count
-      })) || []
+  // const countryOptions = facets.find(facet => facet.name === "COUNTRY")
+  //                              ?.fields.map(field => ({ value: field.label, label: field.label }))
+  //                              || [];
+  const extractFacetOptions = (facets, facetName) => {
+    return (
+      facets
+        .find((facet) => facet.name === facetName)
+        ?.fields.map((field) => ({
+          value: field.label,
+          label: `${field.label} (${field.count})`, // Modified this line
+          count: field.count,
+        })) || []
+    );
+  };
+  const countryOptions = extractFacetOptions(facets, "COUNTRY");
+  const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
+  const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
+  const yearOptions = extractFacetOptions(facets, "YEAR");
+  const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
+  const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
+  const reusability = extractFacetOptions(facets, "REUSABILITY");
+  const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
+  const dataTypeOptions = extractFacetOptions(facets, "TYPE");
+  const locationOptions = extractFacetOptions(facets, "LOCATION");
+  const populationGroupOptions = extractFacetOptions(
+    facets,
+    "POPULATION_GROUP"
   );
-};
-const countryOptions = extractFacetOptions(facets, "COUNTRY");
-const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
-const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
-const yearOptions = extractFacetOptions(facets, "YEAR");
-const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
-const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
-const reusability = extractFacetOptions(facets, "REUSABILITY");
-const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
-const dataTypeOptions = extractFacetOptions(facets, "TYPE");
-const locationOptions = extractFacetOptions(facets, "LOCATION");
-const populationGroupOptions = extractFacetOptions(facets, "POPULATION_GROUP");
-const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
-const genderOptions = extractFacetOptions(facets, "GENDER");
-const disabilityStatusOptions = extractFacetOptions(facets, "DISABILITY_STATUS");
-const socioeconomicStatusOptions = extractFacetOptions(facets, "SOCIOECONOMIC_STATUS");
-const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
-const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
-const languageOptions = extractFacetOptions(facets, "LANGUAGE");
-const religionOptions = extractFacetOptions(facets, "RELIGION");
-const rights = extractFacetOptions(facets, "RIGHTS");
-
+  const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
+  const genderOptions = extractFacetOptions(facets, "GENDER");
+  const disabilityStatusOptions = extractFacetOptions(
+    facets,
+    "DISABILITY_STATUS"
+  );
+  const socioeconomicStatusOptions = extractFacetOptions(
+    facets,
+    "SOCIOECONOMIC_STATUS"
+  );
+  const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
+  const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
+  const languageOptions = extractFacetOptions(facets, "LANGUAGE");
+  const religionOptions = extractFacetOptions(facets, "RELIGION");
+  const rights = extractFacetOptions(facets, "RIGHTS");
 
   useEffect(() => {
     const fetchArtworks = async () => {
@@ -205,15 +227,17 @@ const rights = extractFacetOptions(facets, "RIGHTS");
         currentPage
       );
       setFacets(response?.facets || {});
-        const updatedArtworkData = (response?.artworkData || []).map(artwork => {
-            if (artwork.liked) {
-                artwork.isFavorited = true;
-            }
-            return artwork;
-        });
+      const updatedArtworkData = (response?.artworkData || []).map(
+        (artwork) => {
+          if (artwork.liked) {
+            artwork.isFavorited = true;
+          }
+          return artwork;
+        }
+      );
       setArtworkData(updatedArtworkData);
       setTotalRecords(response?.totalPages || 0);
-      console.log("dataTypeOptions",dataTypeOptions);
+      console.log("dataTypeOptions", dataTypeOptions);
     };
 
     fetchArtworks();
@@ -231,9 +255,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
 
     if (selectedContentTier.length > 0) {
       newFilterQuery += selectedContentTier
-        .map(
-          (option) => "&qf=TYPE%3A" + encodeURIComponent(option.value)
-        )
+        .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
         .join("");
       setAnyFilterSelected(true);
     }
@@ -339,12 +361,12 @@ const rights = extractFacetOptions(facets, "RIGHTS");
     setShowProgressbar(isLoading);
     setCurrentPage(1);
     setTotalRecords(totalPages);
-      const updatedArtworkData = (searchedArtworks).map(artwork => {
-          if (artwork.liked) {
-              artwork.isFavorited = true;
-          }
-          return artwork;
-      });
+    const updatedArtworkData = searchedArtworks.map((artwork) => {
+      if (artwork.liked) {
+        artwork.isFavorited = true;
+      }
+      return artwork;
+    });
     setArtworkData(updatedArtworkData);
 
     // Cleanup function, executed when component unmounts or when dependency array changes
@@ -388,12 +410,12 @@ const rights = extractFacetOptions(facets, "RIGHTS");
     setShowProgressbar(true);
     setCurrentPage(pageNumber);
     getPaginatedArtworks(pageNumber).then((data) => {
-        const updatedArtworkData = (data).map(artwork => {
-            if (artwork.liked) {
-                artwork.isFavorited = true;
-            }
-            return artwork;
-        });
+      const updatedArtworkData = data.map((artwork) => {
+        if (artwork.liked) {
+          artwork.isFavorited = true;
+        }
+        return artwork;
+      });
       setArtworkData(updatedArtworkData);
       setShowProgressbar(false);
     });
@@ -425,12 +447,12 @@ const rights = extractFacetOptions(facets, "RIGHTS");
       localStorage.getItem("currentFilter"),
       pageNumber
     );
-      const updatedArtworkData = (response?.artworkData || []).map(artwork => {
-          if (artwork.liked) {
-              artwork.isFavorited = true;
-          }
-          return artwork;
-      });
+    const updatedArtworkData = (response?.artworkData || []).map((artwork) => {
+      if (artwork.liked) {
+        artwork.isFavorited = true;
+      }
+      return artwork;
+    });
     setTotalRecords(response?.totalPages || 0);
     setArtworkData(updatedArtworkData);
     return response?.artworkData || [];
@@ -649,7 +671,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
 
                           <span
                             className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                              artwork.isFavorited == true 
+                              artwork.isFavorited == true
                                 ? "Liked-label"
                                 : "Like-label"
                             }`}
@@ -1663,7 +1685,10 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                             borderRadius: "2.25rem",
                           }}
                           label={localStorage.getItem("currentQuery")}
-                          onDelete={() => childRef.current.handleDelete()}
+                          onDelete={() => {
+                            childRef.current.handleDelete();
+                            onChipDelete && onChipDelete();
+                          }}
                         />
                       </>
                     ) : (
