@@ -1138,23 +1138,33 @@ const SearchArtworks = ({
     setAnyFilterSelected(false);
   };
 
-  const FilterChip = ({ selectedValues, onRemove }) => (
-    <span className="badge b-form-tag d-inline-flex align-items-baseline mw-100 remove-button badge-primary-light badge-pill">
-      {selectedValues.map((value, index) => (
-        <StyledChip
-          key={index}
-          style={{
-            backgroundColor: "#daeaf8",
-            color: "#4d4d4d",
-            margin: "6px",
-            borderRadius: "2.25rem",
-          }}
-          label={value.label}
-          onDelete={() => onRemove(value)}
-        />
-      ))}
-    </span>
-  );
+  const FilterChip = ({ selectedValues, onRemove }) => {
+    console.log("111111");
+    console.log(selectedValues);
+    if (!Array.isArray(selectedValues)) {
+      selectedValues = [selectedValues]; // Convert to an array if it's not already
+    }
+    console.log("22222");
+    console.log(selectedValues);
+  
+    return (
+      <span className="badge b-form-tag d-inline-flex align-items-baseline mw-100 remove-button badge-primary-light badge-pill">
+        {selectedValues.map((value, index) => (
+          <StyledChip
+            key={index}
+            style={{
+              backgroundColor: "#daeaf8",
+              color: "#4d4d4d",
+              margin: "6px",
+              borderRadius: "2.25rem",
+            }}
+            label={value.label}
+            onDelete={() => onRemove(value)}
+          />
+        ))}
+      </span>
+    );
+  }
 
   const Filters = () => (
     <div>
@@ -1203,9 +1213,15 @@ const SearchArtworks = ({
           />
           <Select
             options={COLLECTION_OPTIONS}
-            isMulti
             value={selectedCollection}
-            onChange={(selectedOption) => setSelectedCollection(selectedOption)}
+            onChange={(selectedOption) => {
+              // Ensure selectedCollection is always an array
+              if (!Array.isArray(selectedOption)) {
+                setSelectedCollection([selectedOption]);
+              } else {
+                setSelectedCollection(selectedOption);
+              }
+            }}
           />
         </Form.Group>
 
