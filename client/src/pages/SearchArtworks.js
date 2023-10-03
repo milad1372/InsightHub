@@ -575,7 +575,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                             handleCardClick(artwork.artworkId, event)
                                         }
                                     >
-                                        <Col xs={5}>
+                                        <Col xs={7}>
                                             <Card.Body>
                                                 <Card.Subtitle>{artwork.dataProvider}</Card.Subtitle>
                                                 <Card.Title>
@@ -618,7 +618,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                                 </div>
                                             </Card.Body>
                                         </Col>
-                                        <Col xs={4}>
+                                        <Col xs={5}>
                                             <Card.Body>
                                                 {artwork.image &&
                                                 artwork.image !== "No image available" ? (
@@ -702,7 +702,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                                 </div>
                                             </Card.Body>
                                         </Col>
-                                        <Col xs={3}>
+                                        {/* <Col xs={3}>
                                             <div className="bullet-pad-left">
                                                 {[...artwork.keywords].map((keyword) => (
                                                     <div
@@ -735,7 +735,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                                     </div>
                                                 ))}
                                             </div>
-                                        </Col>
+                                        </Col> */}
                                     </Row>
                                 </Card>
                             </Col>
@@ -893,11 +893,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                     {artwork.title == "null" ? "" : artwork.title}
                                 </Card.Title>
                                 <Row>
-                                    <Col xs={6}>
+                                    <Col xs={12}>
                                         <Card.Text>{artwork.dcCreator}</Card.Text>
                                         <Card.Text>{artwork.dataProvider}</Card.Text>
                                     </Col>
-                                    <Col xs={6}>
+                                    {/* <Col xs={6}>
                                         <Grid item xs={6} md={4} className="bullet-parent">
                                             <div className="bullet">
                                                 {[...artwork.keywords].map((keyword) => (
@@ -932,7 +932,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                                 ))}
                                             </div>
                                         </Grid>
-                                    </Col>
+                                    </Col> */}
                                 </Row>
                             </Card.Body>
                         </Card>
@@ -1083,7 +1083,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                     )}
                                 </div>
                                 {/* Keyword Section */}
-                                <div className="bullet">
+                                {/* <div className="bullet">
                                     {[...artwork.keywords].map((keyword) => (
                                         <div
                                             key={keyword}
@@ -1114,7 +1114,7 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                       </span>
                                         </div>
                                     ))}
-                                </div>
+                                </div> */}
                             </div>
                         </Card>
                     ))

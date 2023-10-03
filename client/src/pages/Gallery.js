@@ -178,11 +178,11 @@ const Gallery = function () {
                                                     {artwork.title == "null" ? "" : artwork.title}
                                                 </Card.Title>
                                                 <Row>
-                                                    <Col xs={6}>
+                                                    <Col xs={12}>
                                                         <Card.Text>{artwork.dcCreator}</Card.Text>
                                                         <Card.Text>{artwork.dataProvider}</Card.Text>
                                                     </Col>
-                                                    <Col xs={6}>
+                                                    {/* <Col xs={6}>
                                                         <Grid item xs={6} md={4} className="bullet-parent">
                                                             <div className="bullet">
                                                                 {[...artwork.keywords].map((keyword) => (
@@ -217,7 +217,7 @@ const Gallery = function () {
                                                                 ))}
                                                             </div>
                                                         </Grid>
-                                                    </Col>
+                                                    </Col> */}
                                                 </Row>
                                             </Card.Body>
                                         </div>
