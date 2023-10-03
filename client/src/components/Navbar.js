@@ -46,12 +46,10 @@ const useStyles = makeStyles((theme) => ({
 
 
 // const AppNavbar = ({ totalPages, artworkData, onSharedVariableChange })=> {
-const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange}) => {
+const AppNavbar = ({ searchInput, setSearchInput, isLoading, totalPages, searchedArtworks, onSharedVariableChange, filters, onFilterChange}) => {
         // set modal display state
         const [showModal, setShowModal] = useState(false);
         const [showSearchBar, setShowSearchBar] = useState(false);
-        const [searchInput, setSearchInput] = useState("");
-
 
         const SearchBar = () => {
                 const [showSearchMessage, setShowSearchMessage] = useState(false);
@@ -91,6 +89,7 @@ const AppNavbar = ({isLoading, totalPages, searchedArtworks, onSharedVariableCha
                 };
 
                 const handleQueryChange = (e) => {
+                    console.log("called!")
                     let value = e.target.value;
                     setSearchInput(value);
                 };

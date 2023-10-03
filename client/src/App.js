@@ -51,6 +51,7 @@ const App = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({}); // Add this state to hold the current filters
     const [isLoading, setIsLoading] = useState(false); // Add this state to hold the current filters
+    const [searchInput, setSearchInput] = useState('');
 
     const handleSharedVariableChange = (isLoading, totalPages, artworkData) => {
         console.log("nav isLoading: ", isLoading);
@@ -65,6 +66,8 @@ const App = () => {
             <Router>
                 <NavbarWrapper>
                     <Navbar
+                        searchInput={searchInput}
+                        setSearchInput={setSearchInput}
                         searchedArtworks={searchedArtworks}
                         currentPage={currentPage}
                         totalPages={totalPages}
@@ -84,6 +87,7 @@ const App = () => {
 
                             <SearchArtworks
                                 {...props}
+                                setSearchInput={setSearchInput}
                                 searchedArtworks={searchedArtworks}
                                 currentPage={currentPage}
                                 totalPages={totalPages}
