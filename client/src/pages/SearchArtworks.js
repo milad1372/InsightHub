@@ -746,6 +746,8 @@ const SearchArtworks = ({
             handleDelete() {
                 setArtworkData([]);
                 localStorage.setItem("currentQuery", "");
+                setSearchInput('');
+                setCurrentPage(1);
                 setShowProgressbar(true); // Show progress bar before the API call
                 getPaginatedArtworks(currentPage).then((data) => {
                     setShowProgressbar(false); // Hide progress bar after the API call is complete
@@ -941,6 +943,8 @@ const SearchArtworks = ({
             handleDelete() {
                 setArtworkData([]);
                 localStorage.setItem("currentQuery", "");
+                setSearchInput('');
+                setCurrentPage(1);
                 setShowProgressbar(true); // Show progress bar before the API call
                 getPaginatedArtworks(currentPage).then((data) => {
                     setShowProgressbar(false); // Hide progress bar after the API call is complete

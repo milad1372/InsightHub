@@ -49,8 +49,8 @@ module.exports = {
             return null;
         }
     },
-    
-    retrieveKeywordsFromYAKE: async function (title) {
+
+    retrieveKeywordsFromYAKE: async function(title) {
         try {
             const response = await axios.post(yakeURL, {
                 language: "en",
@@ -65,11 +65,18 @@ module.exports = {
             });
 
             const keywords = response.data ? response.data.map(keywordObj => keywordObj.ngram) : [];
-            const filteredKeywords = keywords.filter(keyword => !stopWords.includes(keyword.toLowerCase()));
+
+            const filteredKeywords = keywords.filter(keyword => {
+                const parts = keyword.toLowerCase().split(/[- .:;?!~,`"&|()<>{}\[\]\r\n/\\]+/);
+                return !parts.some(part => stopWords.includes(part));
+            });
+
             return filteredKeywords;
+
         } catch (error) {
             console.error("Error retrieving keywords from YAKE:", error);
             return [];
         }
     }
+
 };
