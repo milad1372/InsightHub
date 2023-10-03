@@ -4,7 +4,7 @@ import "./SearchArtworks.css";
 import "../css/gallery.css";
 import Button from "@mui/material/Button";
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from "react";
-import {Card, Container, Row} from "react-bootstrap";
+import {Card, Col, Container, Row} from "react-bootstrap";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import getGalleries from "../api/getGalleriesApi";
 import {useLocation} from 'react-router-dom';
@@ -86,7 +86,7 @@ const Gallery = function () {
             let currentElement = target;
             let isInsideDataAndButtonsWrapper = false;
             while (currentElement) {
-                if (currentElement.classList.contains('data-and-buttons-wrapper') || currentElement.classList.contains('MuiSvgIcon-root') || currentElement.classList.contains('bullet-points')) {
+                if (currentElement.classList.contains('data-and-buttons-wrapper') || currentElement.classList.contains('MuiSvgIcon-root') || currentElement.classList.contains('bullet')) {
                     isInsideDataAndButtonsWrapper = true;
                     break;
                 }
@@ -151,7 +151,6 @@ const Gallery = function () {
                                   onMouseEnter={() => handleCardHover(artwork.artworkId)}
                                   onMouseLeave={handleCardLeave}>
                                 <Grid container >
-                                    <Grid item xs={6} md={8}>
                                         <div className="card-content-wrapper">
                                             {/* Card image */}
                                             {artwork.image && artwork.image !== "No image available" ? (
@@ -175,39 +174,54 @@ const Gallery = function () {
                                             )}
                                             {/* Card body */}
                                             <Card.Body>
-                                                <Card.Title>{artwork.title == "null" ? "" : artwork.title}</Card.Title>
-                                                <Card.Text>{artwork.dcCreator}</Card.Text>
-                                                <Card.Text>{artwork.dataProvider}</Card.Text>
+                                                <Card.Title>
+                                                    {artwork.title == "null" ? "" : artwork.title}
+                                                </Card.Title>
+                                                <Row>
+                                                    <Col xs={6}>
+                                                        <Card.Text>{artwork.dcCreator}</Card.Text>
+                                                        <Card.Text>{artwork.dataProvider}</Card.Text>
+                                                    </Col>
+                                                    <Col xs={6}>
+                                                        <Grid item xs={6} md={4} className="bullet-parent">
+                                                            <div className="bullet">
+                                                                {[...artwork.keywords].map((keyword) => (
+                                                                    <div
+                                                                        key={keyword}
+                                                                        onClick={() => handleKeywordClick(keyword)}
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            alignItems: "center",
+                                                                            margin: "2px 0",
+                                                                        }}
+                                                                    >
+                                                                        <div
+                                                                            className="circle"
+                                                                            style={{
+                                                                                background:
+                                                                                    selectedKeywords[keyword] || "transparent",
+                                                                                border: selectedKeywords[keyword]
+                                                                                    ? "none"
+                                                                                    : "1px solid gray",
+                                                                            }}
+                                                                        />
+                                                                        <span
+                                                                            style={{
+                                                                                marginLeft: "2px",
+                                                                                color: selectedKeywords[keyword] || "black",
+                                                                            }}
+                                                                        >
+                              {keyword}
+                            </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </Grid>
+                                                    </Col>
+                                                </Row>
                                             </Card.Body>
                                         </div>
                                     </Grid>
-                                    <Grid item xs={6} md={4}>
-                                        <div className="bullet-points">
-                                            {[...artwork.keywords].map(keyword => (
-                                                <div key={keyword} onClick={() => handleKeywordClick(keyword)}
-                                                     style={{display: 'flex', alignItems: 'center', margin: '2px 0'}}>
-                                                    <div
-                                                        className="circle"
-                                                        style={{
-                                                            background: selectedKeywords[keyword] || 'transparent',
-                                                            border: selectedKeywords[keyword] ? 'none' : '1px solid gray'
-                                                        }}
-                                                    />
-                                                    <span
-                                                        style={{
-                                                            marginLeft: '2px',
-                                                            color: selectedKeywords[keyword] || 'black'
-                                                        }}
-                                                    >
-                                                  {keyword}
-                                                </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </Grid>
-                                </Grid>
-
-
                             </Card>
                         </div>
                     ))}

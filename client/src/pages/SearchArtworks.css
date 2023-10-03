@@ -407,6 +407,7 @@ data-and-buttons-wrapper [class^=icon-] {
 }
 
 .icon-container {
+  pointer-events: none;
   position: absolute;
   right: 0;
   display: flex;
@@ -420,6 +421,31 @@ data-and-buttons-wrapper [class^=icon-] {
   z-index: 3;
   box-sizing: border-box;
   margin-right: 15px;
+}
+
+.icon-container .hover-icon {
+  pointer-events: all;
+}
+
+
+.icon-container-mosaic {
+  pointer-events: none;
+  position: absolute;
+  left: 1rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+  opacity: 0; /* Hide the icons by default */
+  flex-wrap: wrap;
+  top: 1rem;
+  z-index: 3;
+  box-sizing: border-box;
+}
+
+.icon-container-mosaic .hover-icon {
+  pointer-events: all;
 }
 
 .hover-icon {
@@ -448,6 +474,10 @@ data-and-buttons-wrapper [class^=icon-] {
 }
 
 .artwork-card-grid:hover .icon-container {
+  opacity: 50; /* Show the icons when hovering over the card */
+}
+
+.artwork-card-grid:hover .icon-container-mosaic {
   opacity: 50; /* Show the icons when hovering over the card */
 }
 
