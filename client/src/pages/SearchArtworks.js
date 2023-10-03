@@ -145,6 +145,7 @@ const SearchArtworks = ({
   const [userGalleries, setUserGalleries] = useState([]);
   const [facets, setFacets] = useState([]);
   const [selectedKeywords, setSelectedKeywords] = useState({});
+  const [pageIsLoading, setPageIsLoading] = useState(false);
   const [availableColors, setAvailableColors] = useState([
     "#e41a1c",
     "#377eb8",
@@ -207,12 +208,14 @@ const rights = extractFacetOptions(facets, "RIGHTS");
   useEffect(() => {
     const fetchArtworks = async () => {
         setShowProgressbar(true);
+        setPageIsLoading(true);
       const response = await getRecords(
         localStorage.getItem("currentQuery"),
         filterQuery,
         currentPage
       );
       setShowProgressbar(false);
+      setPageIsLoading(false);
       setFacets(response?.facets || {});
         const updatedArtworkData = (response?.artworkData || []).map(artwork => {
             if (artwork.liked) {
@@ -1885,11 +1888,11 @@ const rights = extractFacetOptions(facets, "RIGHTS");
                                     </Grid>
                                 </DialogActions>
                             </Dialog>
-                            {totalRecords > 1 && (
-                                <div className="d-flex justify-content-center">
-                                    <Pagination/>
-                                </div>
-                            )}
+                            {!pageIsLoading && totalRecords > 1 && (
+    <div className="d-flex justify-content-center">
+        <Pagination/>
+    </div>
+)}
                         </Col>
                         <Col xs={12} sm={2} className="col-filters">
                             <Filters/>
