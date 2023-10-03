@@ -200,11 +200,13 @@ const rights = extractFacetOptions(facets, "RIGHTS");
 
   useEffect(() => {
     const fetchArtworks = async () => {
+        setShowProgressbar(true);
       const response = await getRecords(
         localStorage.getItem("currentQuery"),
         filterQuery,
         currentPage
       );
+      setShowProgressbar(false);
       setFacets(response?.facets || {});
         const updatedArtworkData = (response?.artworkData || []).map(artwork => {
             if (artwork.liked) {
