@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useRef} from "react";
 import { BrowserRouter as Router, Route, Switch, useLocation } from 'react-router-dom';
 import SearchArtworks from "./pages/SearchArtworks";
 import SavedArtworks from "./pages/SavedArtworks";
@@ -51,7 +51,11 @@ const App = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({}); // Add this state to hold the current filters
     const [isLoading, setIsLoading] = useState(false); // Add this state to hold the current filters
-
+    const handleChipDelete = () => {
+      navbarRef.current && navbarRef.current.handleChipDelete();
+    };
+  
+    const navbarRef = useRef(null);
     const handleSharedVariableChange = (isLoading, totalPages, artworkData) => {
         console.log("nav isLoading: ", isLoading);
         setTotalPages(totalPages);
@@ -65,6 +69,7 @@ const App = () => {
             <Router>
                 <NavbarWrapper>
                     <Navbar
+                        ref={navbarRef}
                         searchedArtworks={searchedArtworks}
                         currentPage={currentPage}
                         totalPages={totalPages}
@@ -84,6 +89,7 @@ const App = () => {
 
                             <SearchArtworks
                                 {...props}
+                                onChipDelete={handleChipDelete}
                                 searchedArtworks={searchedArtworks}
                                 currentPage={currentPage}
                                 totalPages={totalPages}

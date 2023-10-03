@@ -1,0 +1,13 @@
+/* Outer search box styling */
+.searchbox {
+    border-radius: 5px;
+    width: 40rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa; /* Bootstrap light background color */
+    margin: 4rem;
+}
+
+/* Styling for the back arrow icon */
+.searchbox .arrow-back-icon {
+    color: #495057; /* Bootstrap default text color */
+}

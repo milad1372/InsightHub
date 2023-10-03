@@ -1,32 +1,23 @@
 import React, {
   useState,
   useEffect,
+  useCallback,
   forwardRef,
   useRef,
   useImperativeHandle,
 } from "react";
 import Select from "react-select";
 import "../css/common.css";
-import {
-    Container,
-    Col,
-    Form,
-    Button,
-    Card,
-    Row,
-} from "react-bootstrap";
+import { Container, Col, Form, Button, Card, Row } from "react-bootstrap";
 
 import Auth from "../utils/auth";
-import {saveArtworkIds, getSavedArtworkIds} from "../utils/localStorage";
+import { saveArtworkIds, getSavedArtworkIds } from "../utils/localStorage";
 
-import {SAVE_ARTWORK} from "../utils/mutations";
-import {useMutation} from "@apollo/react-hooks";
+import { SAVE_ARTWORK } from "../utils/mutations";
+import { useMutation } from "@apollo/react-hooks";
 import "./SearchArtworks.css";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {
-    faArrowLeft,
-    faArrowRight,
-} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -35,7 +26,7 @@ import Chip from "@mui/material/Chip";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import GridViewIcon from "@mui/icons-material/GridView";
 import AutoAwesomeMosaicOutlined from "@mui/icons-material/AutoAwesomeMosaicOutlined";
-import {withStyles} from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Grid from "@mui/material/Grid";
@@ -54,59 +45,73 @@ import deleteArtworkFromGallery from "../api/deleteArtworkFromGalleryApi";
 import deleteLikedArtworkFromDataBase from "../api/deleteLikedArtworkFromDataBaseApi";
 import getGalleries from "../api/getGalleriesApi";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import {OverlayTrigger, Tooltip} from "react-bootstrap";
-import {FaInfoCircle} from "react-icons/fa";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { FaInfoCircle } from "react-icons/fa";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // Initialize the options for filters
-const COLLECTION_OPTIONS = [{ value: "archaeology", label: "Archaeology" }, {value: "art", label: "Art"}, {value: "fashion", label: "Fashion"}, {value: "Industrial Heritage", label: "Industrial Heritage"}, {value: "Manyscripts", label: "Manuscripts"}, {value: "Maps and Geography", label: "Maps and Geography"}, {value: "Music", label: "Music"}, {value: "Natural History", label: "Natrual History"}, {value: "Newspapers", label: "Newspapers"}, {value: "Photograph", label: "Photograph"}, {value: "Sports", label: "Sports"}, {value: "World War I", label: "World War I"},];
+const COLLECTION_OPTIONS = [
+  { value: "archaeology", label: "Archaeology" },
+  { value: "art", label: "Art" },
+  { value: "fashion", label: "Fashion" },
+  { value: "Industrial Heritage", label: "Industrial Heritage" },
+  { value: "Manyscripts", label: "Manuscripts" },
+  { value: "Maps and Geography", label: "Maps and Geography" },
+  { value: "Music", label: "Music" },
+  { value: "Natural History", label: "Natrual History" },
+  { value: "Newspapers", label: "Newspapers" },
+  { value: "Photograph", label: "Photograph" },
+  { value: "Sports", label: "Sports" },
+  { value: "World War I", label: "World War I" },
+];
 const CONTENT_TIER_OPTIONS = [{ value: "4", label: "4" }];
 const TYPE_OPTIONS = [{ value: "IMAGE", label: "Image" }];
 const COUNTRY_OPTIONS = [{ value: "Europe", label: "Europe" }];
 const LANGUAGE_OPTIONS = [{ value: "mul", label: "Multiple Languages" }];
 const PROVIDER_OPTIONS = [{ value: "Daguerreobase", label: "Daguerreobase" }];
 const DATA_PROVIDER_OPTIONS = [
-    {
-        value: "National Science and Media Museum Bradford",
-        label: "National Science and Media Museum Bradford",
-    },
+  {
+    value: "National Science and Media Museum Bradford",
+    label: "National Science and Media Museum Bradford",
+  },
 ];
-const COLOUR_PALETTE_OPTIONS = [{value: "#000000", label: "Black"}];
-const IMAGE_ASPECTRATIO_OPTIONS = [{value: "landscape", label: "Landscape"}];
-const IMAGE_SIZE_OPTIONS = [{value: "large", label: "Large"}];
-const MIME_TYPE_OPTIONS = [{value: "image/jpeg", label: "JPEG"}];
+const COLOUR_PALETTE_OPTIONS = [{ value: "#000000", label: "Black" }];
+const IMAGE_ASPECTRATIO_OPTIONS = [{ value: "landscape", label: "Landscape" }];
+const IMAGE_SIZE_OPTIONS = [{ value: "large", label: "Large" }];
+const MIME_TYPE_OPTIONS = [{ value: "image/jpeg", label: "JPEG" }];
 const RIGHTS_OPTIONS = [
-    {value: "* /publicdomain/mark/*", label: "Public Domain"},
+  { value: "* /publicdomain/mark/*", label: "Public Domain" },
 ];
 const StyledChip = withStyles({
-    label: {
-        marginRight: -3,
-    },
-    icon: {
-        position: "absolute",
-        right: 10,
-        backgroundColor: "#000",
-    },
+  label: {
+    marginRight: -3,
+  },
+  icon: {
+    position: "absolute",
+    right: 10,
+    backgroundColor: "#000",
+  },
 })(Chip);
 
 const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="down" ref={ref} {...props} />;
+  return <Slide direction="down" ref={ref} {...props} />;
 });
 
 const SearchArtworks = ({
-                            isLoading,
-                            totalPages,
-                            searchedArtworks,
-                            filters,
-                            onFilterChange,
-                        }) => {
-    const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
-    const [view, setView] = useState("list");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [filterQuery, setFilterQuery] = useState("");
-    const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-    const [anyFilterSelected, setAnyFilterSelected] = useState(false);
+  isLoading,
+  totalPages,
+  searchedArtworks,
+  filters,
+  onFilterChange,
+  onChipDelete,
+}) => {
+  const [savedArtworkIds, setSavedArtworkIds] = useState(getSavedArtworkIds());
+  const [view, setView] = useState("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterQuery, setFilterQuery] = useState("");
+  const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [anyFilterSelected, setAnyFilterSelected] = useState(false);
 
   // States for filters
   const [selectedCollection, setSelectedCollection] = useState([]);
@@ -137,18 +142,18 @@ const SearchArtworks = ({
   const [keywordColors, setKeywordColors] = useState({});
   const [keywords, setKeywords] = useState([]);
   const [selectedKeywords, setSelectedKeywords] = useState([]);
-
+  const [pageIsLoading, setPageIsLoading] = useState(false);
   const colorPalette = [
-      '#a6cee3',
-      '#1f78b4',
-      '#b2df8a',
-      '#33a02c',
-      '#fb9a99',
-      '#e31a1c',
-      '#fdbf6f',
-      '#ff7f00',
-      '#cab2d6',
-      '#6a3d9a',
+    "#a6cee3",
+    "#1f78b4",
+    "#b2df8a",
+    "#33a02c",
+    "#fb9a99",
+    "#e31a1c",
+    "#fdbf6f",
+    "#ff7f00",
+    "#cab2d6",
+    "#6a3d9a",
   ];
   const [savedArtworks, setSavedArtworks] = useState(() => {
     if (localStorage.getItem("savedArtworks")) {
@@ -156,83 +161,117 @@ const SearchArtworks = ({
     }
     return {};
   });
-// const countryOptions = facets.find(facet => facet.name === "COUNTRY")
-//                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
-//                              || [];
-const extractFacetOptions = (facets, facetName) => {
-  return facets.find(facet => facet.name === facetName)?.fields.map(field => ({ value: field.label, label: field.label })) || [];
-}
-const countryOptions = extractFacetOptions(facets, "COUNTRY");
-const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
-const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
-const yearOptions = extractFacetOptions(facets, "YEAR");
-const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
-const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
-const reusability = extractFacetOptions(facets, "REUSABILITY");
-const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
-const dataTypeOptions = extractFacetOptions(facets, "TYPE");
-const locationOptions = extractFacetOptions(facets, "LOCATION");
-const populationGroupOptions = extractFacetOptions(facets, "POPULATION_GROUP");
-const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
-const genderOptions = extractFacetOptions(facets, "GENDER");
-const disabilityStatusOptions = extractFacetOptions(facets, "DISABILITY_STATUS");
-const socioeconomicStatusOptions = extractFacetOptions(facets, "SOCIOECONOMIC_STATUS");
-const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
-const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
-const languageOptions = extractFacetOptions(facets, "LANGUAGE");
-const religionOptions = extractFacetOptions(facets, "RELIGION");
-const rights = extractFacetOptions(facets, "RIGHTS");
+  // const countryOptions = facets.find(facet => facet.name === "COUNTRY")
+  //                              ?.fields.map(field => ({ value: field.label, label: field.label }))
+  //                              || [];
+  const extractFacetOptions = (facets = [], facetName) => {
+    // Ensure facets is an array
+    if (!Array.isArray(facets)) {
+      console.error("Expected 'facets' to be an array, but got:", facets);
+      return [];
+    }
 
-useEffect(() => {
-  const fetchArtworks = async () => {
+    // Find the correct facet and its fields
+    const facetFields = facets.find(
+      (facet) => facet.name === facetName
+    )?.fields;
+
+    // If facetFields exists and is an array, map over it; otherwise, return an empty array
+    return Array.isArray(facetFields)
+      ? facetFields.map((field) => ({
+          value: field.label,
+          label: `${field.label} (${field.count})`,
+          count: field.count,
+        }))
+      : [];
+  };
+  const countryOptions = extractFacetOptions(facets, "COUNTRY");
+  const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
+  const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
+  const yearOptions = extractFacetOptions(facets, "YEAR");
+  const colourPaletteOptions = extractFacetOptions(facets, "COLOURPALETTE");
+  const methodologyOptions = extractFacetOptions(facets, "METHODOLOGY");
+  const reusability = extractFacetOptions(facets, "REUSABILITY");
+  const sampleMethodOptions = extractFacetOptions(facets, "SAMPLE_METHOD");
+  const dataTypeOptions = extractFacetOptions(facets, "TYPE");
+  const locationOptions = extractFacetOptions(facets, "LOCATION");
+  const populationGroupOptions = extractFacetOptions(
+    facets,
+    "POPULATION_GROUP"
+  );
+  const ageRangeOptions = extractFacetOptions(facets, "AGE_RANGE");
+  const genderOptions = extractFacetOptions(facets, "GENDER");
+  const disabilityStatusOptions = extractFacetOptions(
+    facets,
+    "DISABILITY_STATUS"
+  );
+  const socioeconomicStatusOptions = extractFacetOptions(
+    facets,
+    "SOCIOECONOMIC_STATUS"
+  );
+  const educationLevelOptions = extractFacetOptions(facets, "EDUCATION_LEVEL");
+  const occupationOptions = extractFacetOptions(facets, "OCCUPATION");
+  const languageOptions = extractFacetOptions(facets, "LANGUAGE");
+  const religionOptions = extractFacetOptions(facets, "RELIGION");
+  const rights = extractFacetOptions(facets, "RIGHTS");
+
+  useEffect(() => {
+    const fetchArtworks = async () => {
+      setShowProgressbar(true);
+      setPageIsLoading(true);
       const response = await getRecords(
-          localStorage.getItem("currentQuery"),
-          filterQuery,
-          currentPage
+        localStorage.getItem("currentQuery"),
+        filterQuery,
+        currentPage
       );
-      const updatedArtworkData = (response?.artworkData || []).map(artwork => {
+      setShowProgressbar(false);
+      setPageIsLoading(false);
+      const updatedArtworkData = (response?.artworkData || []).map(
+        (artwork) => {
           if (artwork.liked) {
-              artwork.isFavorited = true;
+            artwork.isFavorited = true;
           }
           return artwork;
-      });
+        }
+      );
 
       setFacets(response?.facets || {});
       setArtworkData(updatedArtworkData);
       setTotalRecords(response?.totalPages || 0);
-      console.log("dataTypeOptions",dataTypeOptions);
-      console.log('called!')
-  };
+      console.log("dataTypeOptions", dataTypeOptions);
+    };
 
-        fetchArtworks();
-        let allKeywords = searchedArtworks.flatMap(artwork => artwork.keywords || []);
-        let keywordCounts = allKeywords.reduce((acc, keyword) => {
-            acc[keyword] = (acc[keyword] || 0) + 1;
-            return acc;
-        }, {});
+    fetchArtworks();
+    let allKeywords = searchedArtworks.flatMap(
+      (artwork) => artwork.keywords || []
+    );
+    let keywordCounts = allKeywords.reduce((acc, keyword) => {
+      acc[keyword] = (acc[keyword] || 0) + 1;
+      return acc;
+    }, {});
 
-        let uniqueKeywords = Object.keys(keywordCounts).map(keyword => ({keyword, count: keywordCounts[keyword]}));
-        uniqueKeywords.sort((a, b) => b.count - a.count);
+    let uniqueKeywords = Object.keys(keywordCounts).map((keyword) => ({
+      keyword,
+      count: keywordCounts[keyword],
+    }));
+    uniqueKeywords.sort((a, b) => b.count - a.count);
 
-        setKeywords(uniqueKeywords);
+    setKeywords(uniqueKeywords);
+  }, [filterQuery, currentPage]);
 
-    }, [ filterQuery, currentPage]);
+  useEffect(() => {
+    let newFilterQuery = "";
 
-    useEffect(() => {
-        let newFilterQuery = "";
-
-        if (selectedCollection.length > 0) {
-            newFilterQuery += selectedCollection
-                .map((option) => "&qf=collection%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedCollection.length > 0) {
+      newFilterQuery += selectedCollection
+        .map((option) => "&qf=collection%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
     if (selectedContentTier.length > 0) {
       newFilterQuery += selectedContentTier
-        .map(
-          (option) => "&qf=TYPE%3A" + encodeURIComponent(option.value)
-        )
+        .map((option) => "&qf=TYPE%3A" + encodeURIComponent(option.value))
         .join("");
       setAnyFilterSelected(true);
     }
@@ -244,197 +283,197 @@ useEffect(() => {
       setAnyFilterSelected(true);
     }
 
-        if (selectedCountry.length > 0) {
-            newFilterQuery += selectedCountry
-            .map((option) => "&reusability=" + encodeURIComponent(option.value))
-            .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedCountry.length > 0) {
+      newFilterQuery += selectedCountry
+        .map((option) => "&reusability=" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedLanguage.length > 0) {
-            newFilterQuery += selectedLanguage
-                .map((option) => "&qf=LANGUAGE%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedLanguage.length > 0) {
+      newFilterQuery += selectedLanguage
+        .map((option) => "&qf=LANGUAGE%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedProvider.length > 0) {
-            newFilterQuery += selectedProvider
-                .map((option) => "&qf=PROVIDER%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedProvider.length > 0) {
+      newFilterQuery += selectedProvider
+        .map((option) => "&qf=PROVIDER%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedDataProvider.length > 0) {
-            newFilterQuery += selectedDataProvider
-                .map(
-                    (option) => "&qf=DATA_PROVIDER%3A" + encodeURIComponent(option.value)
-                )
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedDataProvider.length > 0) {
+      newFilterQuery += selectedDataProvider
+        .map(
+          (option) => "&qf=DATA_PROVIDER%3A" + encodeURIComponent(option.value)
+        )
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedColourPalette.length > 0) {
-            newFilterQuery += selectedColourPalette
-                .map(
-                    (option) => "&qf=COLOURPALETTE%3A" + encodeURIComponent(option.value)
-                )
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedColourPalette.length > 0) {
+      newFilterQuery += selectedColourPalette
+        .map(
+          (option) => "&qf=COLOURPALETTE%3A" + encodeURIComponent(option.value)
+        )
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedImageAspectRatio.length > 0) {
-            newFilterQuery += selectedImageAspectRatio
-                .map(
-                    (option) =>
-                        "&qf=IMAGE_ASPECTRATIO%3A" + encodeURIComponent(option.value)
-                )
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedImageAspectRatio.length > 0) {
+      newFilterQuery += selectedImageAspectRatio
+        .map(
+          (option) =>
+            "&qf=IMAGE_ASPECTRATIO%3A" + encodeURIComponent(option.value)
+        )
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedImageSize.length > 0) {
-            newFilterQuery += selectedImageSize
-                .map((option) => "&qf=IMAGE_SIZE%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedImageSize.length > 0) {
+      newFilterQuery += selectedImageSize
+        .map((option) => "&qf=IMAGE_SIZE%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedMimeType.length > 0) {
-            newFilterQuery += selectedMimeType
-                .map((option) => "&qf=MIME_TYPE%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedMimeType.length > 0) {
+      newFilterQuery += selectedMimeType
+        .map((option) => "&qf=MIME_TYPE%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        if (selectedRights.length > 0) {
-            newFilterQuery += selectedRights
-                .map((option) => "&qf=RIGHTS%3A" + encodeURIComponent(option.value))
-                .join("");
-            setAnyFilterSelected(true);
-        }
+    if (selectedRights.length > 0) {
+      newFilterQuery += selectedRights
+        .map((option) => "&qf=RIGHTS%3A" + encodeURIComponent(option.value))
+        .join("");
+      setAnyFilterSelected(true);
+    }
 
-        // Remove leading "&"
-        if (newFilterQuery.startsWith("&")) {
-            newFilterQuery = newFilterQuery.substring(1);
-        }
-        setFilterQuery(newFilterQuery);
-    }, [
-        selectedCollection,
-        selectedContentTier,
-        selectedType,
-        selectedCountry,
-        selectedLanguage,
-        selectedProvider,
-        selectedDataProvider,
-        selectedColourPalette,
-        selectedImageAspectRatio,
-        selectedImageSize,
-        selectedMimeType,
-        selectedRights,
-    ]);
+    // Remove leading "&"
+    if (newFilterQuery.startsWith("&")) {
+      newFilterQuery = newFilterQuery.substring(1);
+    }
+    setFilterQuery(newFilterQuery);
+  }, [
+    selectedCollection,
+    selectedContentTier,
+    selectedType,
+    selectedCountry,
+    selectedLanguage,
+    selectedProvider,
+    selectedDataProvider,
+    selectedColourPalette,
+    selectedImageAspectRatio,
+    selectedImageSize,
+    selectedMimeType,
+    selectedRights,
+  ]);
 
-    useEffect(() => {
-        setShowProgressbar(isLoading);
-        setCurrentPage(1);
-        setTotalRecords(totalPages);
-        const updatedArtworkData = (searchedArtworks).map(artwork => {
-            if (artwork.liked) {
-                artwork.isFavorited = true;
-            }
-            return artwork;
-        });
-        setArtworkData(updatedArtworkData);
-        // Cleanup function, executed when component unmounts or when dependency array changes
-        return () => {
-            // Save artwork ids to local storage when the component unmounts
-            saveArtworkIds(savedArtworkIds);
-        };
-    }, [isLoading, searchedArtworks, totalPages]);
-
-    const [saveArtwork] = useMutation(SAVE_ARTWORK);
-
-    const handleSaveArtwork = async (artworkId) => {
-        const artworkToSave = searchedArtworks.find(
-            (artwork) => artwork.artworkId === artworkId
-        );
-
-        const token = Auth.loggedIn() ? Auth.getToken() : null;
-
-        if (!token) {
-            return false;
-        }
-
-        try {
-            const response = await saveArtwork({
-                variables: {
-                    input: artworkToSave,
-                },
-            });
-
-            if (!response) {
-                throw new Error("something went wrong!");
-            }
-
-            setSavedArtworkIds([...savedArtworkIds, artworkToSave.artworkId]);
-        } catch (err) {
-            console.error(err);
-        }
+  useEffect(() => {
+    setShowProgressbar(isLoading);
+    setCurrentPage(1);
+    setTotalRecords(totalPages);
+    const updatedArtworkData = searchedArtworks.map((artwork) => {
+      if (artwork.liked) {
+        artwork.isFavorited = true;
+      }
+      return artwork;
+    });
+    setArtworkData(updatedArtworkData);
+    // Cleanup function, executed when component unmounts or when dependency array changes
+    return () => {
+      // Save artwork ids to local storage when the component unmounts
+      saveArtworkIds(savedArtworkIds);
     };
+  }, [isLoading, searchedArtworks, totalPages]);
 
-    const handlePageChange = (pageNumber) => {
-        setShowProgressbar(true);
-        setCurrentPage(pageNumber);
-        getPaginatedArtworks(pageNumber).then((data) => {
-            const updatedArtworkData = (data).map(artwork => {
-                if (artwork.liked) {
-                    artwork.isFavorited = true;
-                }
-                return artwork;
-            });
-            setArtworkData(updatedArtworkData);
-            setShowProgressbar(false);
-        });
-    };
+  const [saveArtwork] = useMutation(SAVE_ARTWORK);
 
-    const getPaginatedArtworks = async (pageNumber) => {
-        const response = await getRecords(
-            localStorage.getItem("currentQuery"),
-            localStorage.getItem("currentFilter"),
-            pageNumber
-        );
-        setTotalRecords(response?.totalPages || 0);
-        const updatedArtworkData = (response?.artworkData || []).map(artwork => {
-            if (artwork.liked) {
-                artwork.isFavorited = true;
-            }
-            return artwork;
-        });
-        setArtworkData(updatedArtworkData);
-        return response?.artworkData || [];
-    };
+  const handleSaveArtwork = async (artworkId) => {
+    const artworkToSave = searchedArtworks.find(
+      (artwork) => artwork.artworkId === artworkId
+    );
 
-    const handleCardClick = (artworkId, event) => {
-        if (isAddModalOpen) {
-            return;
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
+
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const response = await saveArtwork({
+        variables: {
+          input: artworkToSave,
+        },
+      });
+
+      if (!response) {
+        throw new Error("something went wrong!");
+      }
+
+      setSavedArtworkIds([...savedArtworkIds, artworkToSave.artworkId]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setShowProgressbar(true);
+    setCurrentPage(pageNumber);
+    getPaginatedArtworks(pageNumber).then((data) => {
+      const updatedArtworkData = data.map((artwork) => {
+        if (artwork.liked) {
+          artwork.isFavorited = true;
         }
+        return artwork;
+      });
+      setArtworkData(updatedArtworkData);
+      setShowProgressbar(false);
+    });
+  };
 
-        const target = event.target;
-        let currentElement = target;
-        let isInsideDataAndButtonsWrapper = false;
-        while (currentElement) {
-            if (
-                currentElement.classList.contains("data-and-buttons-wrapper") ||
-                currentElement.classList.contains("MuiSvgIcon-root")
-            ) {
-                isInsideDataAndButtonsWrapper = true;
-                break;
-            }
-            currentElement = currentElement.parentElement;
-        }
-        if (isInsideDataAndButtonsWrapper) {
-            return;
-        }
+  const getPaginatedArtworks = async (pageNumber) => {
+    const response = await getRecords(
+      localStorage.getItem("currentQuery"),
+      localStorage.getItem("currentFilter"),
+      pageNumber
+    );
+    setTotalRecords(response?.totalPages || 0);
+    const updatedArtworkData = (response?.artworkData || []).map((artwork) => {
+      if (artwork.liked) {
+        artwork.isFavorited = true;
+      }
+      return artwork;
+    });
+    setArtworkData(updatedArtworkData);
+    return response?.artworkData || [];
+  };
+
+  const handleCardClick = (artworkId, event) => {
+    if (isAddModalOpen) {
+      return;
+    }
+
+    const target = event.target;
+    let currentElement = target;
+    let isInsideDataAndButtonsWrapper = false;
+    while (currentElement) {
+      if (
+        currentElement.classList.contains("data-and-buttons-wrapper") ||
+        currentElement.classList.contains("MuiSvgIcon-root")
+      ) {
+        isInsideDataAndButtonsWrapper = true;
+        break;
+      }
+      currentElement = currentElement.parentElement;
+    }
+    if (isInsideDataAndButtonsWrapper) {
+      return;
+    }
 
     let link = "https://www.europeana.eu/en/item" + artworkId;
     window.open(link, "_blank");
@@ -444,7 +483,7 @@ useEffect(() => {
     if (localStorage.getItem("loggedInUser")) {
       console.log("artwork.liked:", artwork.liked);
       console.log("artwork.isFavorited:", artwork.isFavorited);
-      if (!(artwork.isFavorited ||artwork.liked)) {
+      if (!(artwork.isFavorited || artwork.liked)) {
         const response = await saveLikedArtworkIntoDataBase(artwork);
       } else {
         const response = await deleteLikedArtworkFromDataBase(
@@ -455,84 +494,86 @@ useEffect(() => {
 
     let artworkId = artwork.artworkId;
     setArtworkData((prevArtworkData) =>
-        prevArtworkData.map((artwork) =>
-            artwork.artworkId === artworkId
-                ? {
-                  ...artwork,
-                  isFavorited: !artwork.isFavorited,
-                  liked: !artwork.liked,
-                }
-                : artwork
-        )
+      prevArtworkData.map((artwork) =>
+        artwork.artworkId === artworkId
+          ? {
+              ...artwork,
+              isFavorited: !artwork.isFavorited,
+              liked: !artwork.liked,
+            }
+          : artwork
+      )
     );
 
-        console.log("artwork.liked after:", artwork.liked);
-        console.log("artwork.isFavorited:", artwork.isFavorited);
-    };
+    console.log("artwork.liked after:", artwork.liked);
+    console.log("artwork.isFavorited:", artwork.isFavorited);
+  };
 
+  const handleKeywordClick = (keyword) => {
+    if (selectedKeywords.includes(keyword)) {
+      // Remove keyword from selected keywords
+      setSelectedKeywords((prevKeywords) =>
+        prevKeywords.filter((k) => k !== keyword)
+      );
 
-    const handleKeywordClick = (keyword) => {
-        if (selectedKeywords.includes(keyword)) {
-            // Remove keyword from selected keywords
-            setSelectedKeywords(prevKeywords => prevKeywords.filter(k => k !== keyword));
+      // Return the color to the color palette
+      setKeywordColors((prevKeywordColors) => {
+        const newKeywordColors = { ...prevKeywordColors };
+        delete newKeywordColors[keyword];
+        return newKeywordColors;
+      });
+    } else {
+      // Check if the maximum limit of selected keywords is reached
+      if (selectedKeywords.length >= 10) {
+        window.alert("You can select up to 10 keywords only.");
+        return;
+      }
 
-            // Return the color to the color palette
-            setKeywordColors(prevKeywordColors => {
-                const newKeywordColors = {...prevKeywordColors};
-                delete newKeywordColors[keyword];
-                return newKeywordColors;
-            });
-        } else {
-            // Check if the maximum limit of selected keywords is reached
-            if (selectedKeywords.length >= 10) {
-                window.alert('You can select up to 10 keywords only.');
-                return;
-            }
+      // Add keyword to selected keywords
+      setSelectedKeywords((prevKeywords) => [...prevKeywords, keyword]);
 
-            // Add keyword to selected keywords
-            setSelectedKeywords(prevKeywords => [...prevKeywords, keyword]);
-
-            // Assign a color to the newly selected keyword
-            const availableColors = colorPalette.filter(color => !Object.values(keywordColors).includes(color));
-            if (availableColors.length > 0) {
-                setKeywordColors(prevKeywordColors => ({
-                    ...prevKeywordColors,
-                    [keyword]: availableColors[0],
-                }));
-            }
-        }
-    };
-
-
-    const ListView = forwardRef((props, ref) => {
-        useImperativeHandle(ref, () => ({
-            handleDelete() {
-                setArtworkData([]);
-                localStorage.setItem("currentQuery", "");
-                setShowProgressbar(true); // Show progress bar before the API call
-                getPaginatedArtworks(currentPage).then((data) => {
-                    setShowProgressbar(false); // Hide progress bar after the API call is complete
-                    setArtworkData(data);
-                });
-            },
+      // Assign a color to the newly selected keyword
+      const availableColors = colorPalette.filter(
+        (color) => !Object.values(keywordColors).includes(color)
+      );
+      if (availableColors.length > 0) {
+        setKeywordColors((prevKeywordColors) => ({
+          ...prevKeywordColors,
+          [keyword]: availableColors[0],
         }));
+      }
+    }
+  };
 
-        return (
-            <Container>
-                <Row>
-                    {showProgressbar ? (
-                        <div className={"progressbarBox"}>
-                            <CircularProgress
-                                size={20}
-                                style={{
-                                    color: "black",
-                                    width: 20,
-                                    height: 20,
-                                    position: "absolute",
-                                    top: 0,
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
+  const ListView = forwardRef((props, ref) => {
+    useImperativeHandle(ref, () => ({
+      handleDelete() {
+        setArtworkData([]);
+        localStorage.setItem("currentQuery", "");
+        setShowProgressbar(true); // Show progress bar before the API call
+        getPaginatedArtworks(currentPage).then((data) => {
+          setShowProgressbar(false); // Hide progress bar after the API call is complete
+          setArtworkData(data);
+        });
+      },
+    }));
+
+    return (
+      <Container>
+        <Row>
+          {showProgressbar ? (
+            <div className={"progressbarBox"}>
+              <CircularProgress
+                size={20}
+                style={{
+                  color: "black",
+                  width: 20,
+                  height: 20,
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
 
                   margin: "auto",
                 }}
@@ -556,7 +597,7 @@ useEffect(() => {
                         <Card.Text>
                           {artwork.description != null &&
                           artwork.description != ""
-                            ? artwork.description.slice(0, 238) + "..."
+                            ? artwork.description.slice(0, 150) + "..."
                             : ""}
                         </Card.Text>
                         <div
@@ -566,22 +607,22 @@ useEffect(() => {
                         >
                           <span className="d-inline-flex align-items-center text-uppercase">
                             <WorkspacePremiumIcon
-                                sx={{fontSize: ".875rem"}}
+                              sx={{ fontSize: ".875rem" }}
                             />
                             <span className="license-label-text buttons-wrapper-icon">
                               {artwork.license != null &&
                               artwork.license != undefined
-                                  ? artwork.license.indexOf("rightsstatements") >
+                                ? artwork.license.indexOf("rightsstatements") >
                                   -1
-                                      ? "In Copyright"
-                                      : "CC BY 4.0"
-                                  : ""}
+                                  ? "In Copyright"
+                                  : "CC BY 4.0"
+                                : ""}
                             </span>
                           </span>
 
-                                                    <span className="d-inline-flex align-items-center text-uppercase">
+                          <span className="d-inline-flex align-items-center text-uppercase">
                             <InsertDriveFileOutlinedIcon
-                                sx={{fontSize: ".875rem"}}
+                              sx={{ fontSize: ".875rem" }}
                             />
                             <span className="license-label-text buttons-wrapper-icon">
                               {artwork.type}
@@ -591,117 +632,122 @@ useEffect(() => {
                       </Card.Body>
                     </Col>
                     <Col xs={4}>
-                    <Grid container>
-                          <Grid item xs={12}>
-                        {artwork.image &&
-                        artwork.image !== "No image available" ? (
-                          <div className="card-image-wrapper">
-                            <Card.Img
-                              src={artwork.image}
-                              alt={`The image for ${artwork.title}`}
-                              className="card-image"
-                            />
-                          </div>
-                        ) : (
-                          <div className="card-image-wrapper">
-                            <Card.Img
-                              src="./url.png" // Provide the path to the fallback image in the /public directory
-                              alt="Fallback"
-                              className="card-image"
-                            />
-                          </div>
-                        )}
-                          </Grid>
-                        <Grid item xs={12} style={{marginTop:'10px'}}>
-                        <div
-                          className={
-                            "artwork-card-description data-and-buttons-wrapper d-flex mr-2"
-                          }
-                        >
-                          <span
-                            className={`d-inline-flex align-items-center text-uppercase hover-effect ${
-                              savedArtworks[artwork.artworkId]
-                                ? "green-label"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              toggleAddModal(artwork, artwork.image)
+                      <Grid container>
+                        <Grid item xs={12}>
+                          {artwork.image &&
+                          artwork.image !== "No image available" ? (
+                            <div className="card-image-wrapper">
+                              <Card.Img
+                                src={artwork.image}
+                                alt={`The image for ${artwork.title}`}
+                                className="card-image"
+                              />
+                            </div>
+                          ) : (
+                            <div className="card-image-wrapper">
+                              <Card.Img
+                                src="./url.png" // Provide the path to the fallback image in the /public directory
+                                alt="Fallback"
+                                className="card-image"
+                              />
+                            </div>
+                          )}
+                        </Grid>
+                        <Grid item xs={12} style={{ marginTop: "10px" }}>
+                          <div
+                            className={
+                              "artwork-card-description data-and-buttons-wrapper d-flex mr-2"
                             }
                           >
-                            <AddCircleIcon sx={{ fontSize: ".875rem" }} />
-                            <span className="license-label-text buttons-wrapper-icon">
-                              {savedArtworks[artwork.artworkId]
-                                ? "Saved"
-                                : "Save"}
+                            <span
+                              className={`d-inline-flex align-items-center text-uppercase hover-effect ${
+                                savedArtworks[artwork.artworkId]
+                                  ? "green-label"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                toggleAddModal(artwork, artwork.image)
+                              }
+                            >
+                              <AddCircleIcon sx={{ fontSize: ".875rem" }} />
+                              <span className="license-label-text buttons-wrapper-icon">
+                                {savedArtworks[artwork.artworkId]
+                                  ? "Saved"
+                                  : "Save"}
+                              </span>
                             </span>
-                          </span>
 
-                          <span
-                            className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
-                                (artwork.isFavorited==true ||artwork.liked) ? "Liked-label" : "Like-label"
-                            }`}
-                            onClick={() => handleFavoriteClick(artwork)}
-                          >
-                            {(artwork.isFavorited==true ||artwork.liked) ? (
-
-                              <>
-                                <FavoriteIcon
-                                  sx={{ fontSize: ".875rem", color: "red" }}
-                                />
-                                <span
-                                  className="Like-label-text buttons-wrapper-icon"
-                                  style={{ color: "red" }}
-                                >
-                                  Liked
-                                </span>
-                                </>
-                            ) : (
+                            <span
+                              className={`buttons-wrapper d-inline-flex align-items-center text-uppercase hover-effect ${
+                                artwork.isFavorited == true || artwork.liked
+                                  ? "Liked-label"
+                                  : "Like-label"
+                              }`}
+                              onClick={() => handleFavoriteClick(artwork)}
+                            >
+                              {artwork.isFavorited == true || artwork.liked ? (
                                 <>
-                                    <FavoriteIcon
-                                        sx={{fontSize: ".875rem", color: "black"}}
-                                    />
-                                    <span className="Like-label-text buttons-wrapper-icon">
-                                  Like
-                                </span>
+                                  <FavoriteIcon
+                                    sx={{ fontSize: ".875rem", color: "red" }}
+                                  />
+                                  <span
+                                    className="Like-label-text buttons-wrapper-icon"
+                                    style={{ color: "red" }}
+                                  >
+                                    Liked
+                                  </span>
                                 </>
-                            )}
-                          </span>
-                        </div>
+                              ) : (
+                                <>
+                                  <FavoriteIcon
+                                    sx={{ fontSize: ".875rem", color: "black" }}
+                                  />
+                                  <span className="Like-label-text buttons-wrapper-icon">
+                                    Like
+                                  </span>
+                                </>
+                              )}
+                            </span>
+                          </div>
                         </Grid>
-                                                <Grid item xs={12}>
+                        <Grid item xs={12}></Grid>
+                      </Grid>
+                    </Col>
+                    <Col xs={1}>
+                      <div className="f" style={{ marginTop: "10px" }}>
+                        {colorPalette.map((color, index) => {
+                          // Find if there is a keyword associated with the current color
+                          const keyword = Object.entries(keywordColors).find(
+                            ([key, value]) => value === color
+                          )?.[0];
 
-                                                </Grid>
+                          // Find if the keyword is selected
+                          const isSelected = selectedKeywords.includes(keyword);
 
-                                            </Grid>
-                                        </Col>
-                                        <Col xs={1}>
-                                            <div className="f" style={{marginTop:'10px'}}>
-                                                {colorPalette.map((color, index) => {
-                                                    // Find if there is a keyword associated with the current color
-                                                    const keyword = Object.entries(keywordColors).find(([key, value]) => value === color)?.[0];
+                          // Determine whether to show the disc (it must have a keyword and be selected)
+                          const showDisc =
+                            keyword &&
+                            isSelected &&
+                            (artwork.keywords || []).includes(keyword);
 
-                                                    // Find if the keyword is selected
-                                                    const isSelected = selectedKeywords.includes(keyword);
-
-                                                    // Determine whether to show the disc (it must have a keyword and be selected)
-                                                    const showDisc = keyword && isSelected && (artwork.keywords || []).includes(keyword);
-
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className="card-keyword-disc"
-                                                            style={{
-                                                                backgroundColor: showDisc ? color : 'transparent',
-                                                                borderRadius: '50%',
-                                                                width: '12px',
-                                                                height: '12px',
-                                                                margin: '2px',
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
-                                        </Col>
+                          return (
+                            <div
+                              key={index}
+                              className="card-keyword-disc"
+                              style={{
+                                backgroundColor: showDisc
+                                  ? color
+                                  : "transparent",
+                                borderRadius: "50%",
+                                width: "12px",
+                                height: "12px",
+                                margin: "2px",
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    </Col>
                   </Row>
                 </Card>
               </Col>
@@ -712,28 +758,28 @@ useEffect(() => {
     );
   });
 
-    const CardView = forwardRef((props, ref) => {
-        const [hoveredCard, setHoveredCard] = useState(null);
+  const CardView = forwardRef((props, ref) => {
+    const [hoveredCard, setHoveredCard] = useState(null);
 
-        const handleCardHover = (artworkId) => {
-            setHoveredCard(artworkId);
-        };
+    const handleCardHover = (artworkId) => {
+      setHoveredCard(artworkId);
+    };
 
-        const handleCardLeave = () => {
-            setHoveredCard(null);
-        };
+    const handleCardLeave = () => {
+      setHoveredCard(null);
+    };
 
-        useImperativeHandle(ref, () => ({
-            handleDelete() {
-                setArtworkData([]);
-                localStorage.setItem("currentQuery", "");
-                setShowProgressbar(true); // Show progress bar before the API call
-                getPaginatedArtworks(currentPage).then((data) => {
-                    setShowProgressbar(false); // Hide progress bar after the API call is complete
-                    setArtworkData(data);
-                });
-            },
-        }));
+    useImperativeHandle(ref, () => ({
+      handleDelete() {
+        setArtworkData([]);
+        localStorage.setItem("currentQuery", "");
+        setShowProgressbar(true); // Show progress bar before the API call
+        getPaginatedArtworks(currentPage).then((data) => {
+          setShowProgressbar(false); // Hide progress bar after the API call is complete
+          setArtworkData(data);
+        });
+      },
+    }));
 
     return (
       <Container className="card-container-grid">
@@ -786,12 +832,14 @@ useEffect(() => {
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: (artwork.isFavorited ==true||artwork.liked)
-                            ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                          color:
+                            artwork.isFavorited == true || artwork.liked
+                              ? "#fff !important"
+                              : "#4d4d4d !important",
+                          backgroundColor:
+                            artwork.isFavorited == true || artwork.liked
                               ? "red !important"
-                            : "#fff !important",
+                              : "#fff !important",
                         }}
                         className="hover-icon"
                       />
@@ -819,12 +867,14 @@ useEffect(() => {
                           fontSize: "10px",
                           height: "36px",
                           width: "36px",
-                          color: (artwork.isFavorited ==true||artwork.liked)
+                          color:
+                            artwork.isFavorited == true || artwork.liked
                               ? "#fff !important"
-                            : "#4d4d4d !important",
-                          backgroundColor: (artwork.isFavorited==true ||artwork.liked)
+                              : "#4d4d4d !important",
+                          backgroundColor:
+                            artwork.isFavorited == true || artwork.liked
                               ? "red !important"
-                            : "#fff !important",
+                              : "#fff !important",
                         }}
                         className="hover-icon"
                       />
@@ -834,40 +884,45 @@ useEffect(() => {
               )}
               {/* Card body */}
               <Card.Body>
-                                <Card.Title>
-                                    {artwork.title == "null" ? "" : artwork.title}
-                                </Card.Title>
-                                <Card.Text>{artwork.dcCreator}</Card.Text>
-                                <Card.Text>{artwork.dataProvider}</Card.Text>
-                                <Card.Text>
-                                    <div className="card-keyword-indicators">
-                                        {colorPalette.map((color, index) => {
-                                            // Find if there is a keyword associated with the current color
-                                            const keyword = Object.entries(keywordColors).find(([key, value]) => value === color)?.[0];
+                <Card.Title>
+                  {artwork.title == "null" ? "" : artwork.title}
+                </Card.Title>
+                <Card.Text>{artwork.dcCreator}</Card.Text>
+                <Card.Text>{artwork.dataProvider}</Card.Text>
+                <Card.Text>
+                  <div className="card-keyword-indicators">
+                    {colorPalette.map((color, index) => {
+                      // Find if there is a keyword associated with the current color
+                      const keyword = Object.entries(keywordColors).find(
+                        ([key, value]) => value === color
+                      )?.[0];
 
-                                            // Find if the keyword is selected
-                                            const isSelected = selectedKeywords.includes(keyword);
+                      // Find if the keyword is selected
+                      const isSelected = selectedKeywords.includes(keyword);
 
-                                            // Determine whether to show the disc (it must have a keyword and be selected)
-                                            const showDisc = keyword && isSelected && (artwork.keywords || []).includes(keyword);
+                      // Determine whether to show the disc (it must have a keyword and be selected)
+                      const showDisc =
+                        keyword &&
+                        isSelected &&
+                        (artwork.keywords || []).includes(keyword);
 
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="card-keyword-disc"
-                                                    style={{
-                                                        backgroundColor: showDisc ? color : 'transparent',
-                                                        borderRadius: '50%',
-                                                        width: '12px',
-                                                        height: '12px',
-                                                        margin: '2px',
-                                                    }}
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                </Card.Text>
-                            </Card.Body>
+                      return (
+                        <div
+                          key={index}
+                          className="card-keyword-disc"
+                          style={{
+                            backgroundColor: showDisc ? color : "transparent",
+                            borderRadius: "50%",
+                            width: "12px",
+                            height: "12px",
+                            margin: "2px",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </Card.Text>
+              </Card.Body>
             </Card>
           ))
         )}
@@ -875,28 +930,28 @@ useEffect(() => {
     );
   });
 
-    const MosaicView = forwardRef((props, ref) => {
-        const [hoveredCard, setHoveredCard] = useState(null);
+  const MosaicView = forwardRef((props, ref) => {
+    const [hoveredCard, setHoveredCard] = useState(null);
 
-        const handleCardHover = (artworkId) => {
-            setHoveredCard(artworkId);
-        };
+    const handleCardHover = (artworkId) => {
+      setHoveredCard(artworkId);
+    };
 
-        const handleCardLeave = () => {
-            setHoveredCard(null);
-        };
+    const handleCardLeave = () => {
+      setHoveredCard(null);
+    };
 
-        useImperativeHandle(ref, () => ({
-            handleDelete() {
-                setArtworkData([]);
-                localStorage.setItem("currentQuery", "");
-                setShowProgressbar(true); // Show progress bar before the API call
-                getPaginatedArtworks(currentPage).then((data) => {
-                    setShowProgressbar(false); // Hide progress bar after the API call is complete
-                    setArtworkData(data);
-                });
-            },
-        }));
+    useImperativeHandle(ref, () => ({
+      handleDelete() {
+        setArtworkData([]);
+        localStorage.setItem("currentQuery", "");
+        setShowProgressbar(true); // Show progress bar before the API call
+        getPaginatedArtworks(currentPage).then((data) => {
+          setShowProgressbar(false); // Hide progress bar after the API call is complete
+          setArtworkData(data);
+        });
+      },
+    }));
 
     return (
       <Container className="card-container-grid">
@@ -929,215 +984,253 @@ useEffect(() => {
             >
               {/* Card image */}
               <Grid container>
-                                <Grid item xs={12}>
-                                    {artwork.image && artwork.image !== "No image available" ? (
+                <Grid item xs={12}>
+                  {artwork.image && artwork.image !== "No image available" ? (
+                    <div>
+                      <Card.Img
+                        className="card-image-grid"
+                        src={artwork.image}
+                        alt={`The image for ${artwork.title}`}
+                        variant="top"
+                      />
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Card.Img
+                        className="card-image-grid"
+                        src="./url.png"
+                        alt="Fallback"
+                        variant="top"
+                      />
+                      {hoveredCard === artwork.artworkId && (
+                        <div className="icon-container">
+                          <AddCircleIcon
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                            }}
+                            className="hover-icon"
+                            onClick={() =>
+                              toggleAddModal(artwork, artwork.image)
+                            }
+                          />
+                          <FavoriteIcon
+                            onClick={() => handleFavoriteClick(artwork)}
+                            sx={{
+                              fontSize: "10px",
+                              height: "36px",
+                              width: "36px",
+                              color:
+                                artwork.isFavorited == true
+                                  ? "#fff !important"
+                                  : "#4d4d4d !important",
+                              backgroundColor:
+                                artwork.isFavorited == true
+                                  ? "red !important"
+                                  : "#fff !important",
+                            }}
+                            className="hover-icon"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Grid>
+                <Grid item xs={12} style={{ marginTop: "40px" }}>
+                  <div className="card-keyword-indicators">
+                    {colorPalette.map((color, index) => {
+                      // Find if there is a keyword associated with the current color
+                      const keyword = Object.entries(keywordColors).find(
+                        ([key, value]) => value === color
+                      )?.[0];
 
-                                        <div>
-                                            <Card.Img
-                                                className="card-image-grid"
-                                                src={artwork.image}
-                                                alt={`The image for ${artwork.title}`}
-                                                variant="top"
-                                            />
-                                            {hoveredCard === artwork.artworkId && (
-                                                <div className="icon-container">
-                                                    <AddCircleIcon
-                                                        sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                        className="hover-icon"
-                                                        onClick={() => toggleAddModal(artwork, artwork.image)}
-                                                    />
-                                                    <FavoriteIcon
-                                                        onClick={() => handleFavoriteClick(artwork)}
-                                                        sx={{
-                                                            fontSize: "10px",
-                                                            height: "36px",
-                                                            width: "36px",
-                                                            color: (artwork.isFavorited == true )
-                                                                ? "#fff !important"
-                                                                : "#4d4d4d !important",
-                                                            backgroundColor: (artwork.isFavorited == true )
-                                                                ? "red !important"
-                                                                : "#fff !important",
-                                                        }}
-                                                        className="hover-icon"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <Card.Img
-                                                className="card-image-grid"
-                                                src="./url.png"
-                                                alt="Fallback"
-                                                variant="top"
+                      // Find if the keyword is selected
+                      const isSelected = selectedKeywords.includes(keyword);
 
-                                            />
-                                            {hoveredCard === artwork.artworkId && (
-                                                <div className="icon-container">
-                                                    <AddCircleIcon
-                                                        sx={{fontSize: "10px", height: "36px", width: "36px"}}
-                                                        className="hover-icon"
-                                                        onClick={() => toggleAddModal(artwork, artwork.image)}
-                                                    />
-                                                    <FavoriteIcon
-                                                        onClick={() => handleFavoriteClick(artwork)}
-                                                        sx={{
-                                                            fontSize: "10px",
-                                                            height: "36px",
-                                                            width: "36px",
-                                                            color: (artwork.isFavorited == true )
-                                                                ? "#fff !important"
-                                                                : "#4d4d4d !important",
-                                                            backgroundColor: (artwork.isFavorited == true )
-                                                                ? "red !important"
-                                                                : "#fff !important",
-                                                        }}
-                                                        className="hover-icon"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </Grid>
-                                <Grid item xs={12} style={{marginTop: '40px'}}>
-                                    <div className="card-keyword-indicators">
-                                        {colorPalette.map((color, index) => {
-                                            // Find if there is a keyword associated with the current color
-                                            const keyword = Object.entries(keywordColors).find(([key, value]) => value === color)?.[0];
+                      // Determine whether to show the disc (it must have a keyword and be selected)
+                      const showDisc =
+                        keyword &&
+                        isSelected &&
+                        (artwork.keywords || []).includes(keyword);
 
-                                            // Find if the keyword is selected
-                                            const isSelected = selectedKeywords.includes(keyword);
-
-                                            // Determine whether to show the disc (it must have a keyword and be selected)
-                                            const showDisc = keyword && isSelected && (artwork.keywords || []).includes(keyword);
-
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="card-keyword-disc"
-                                                    style={{
-                                                        backgroundColor: showDisc ? color : 'transparent',
-                                                        borderRadius: '50%',
-                                                        width: '12px',
-                                                        height: '12px',
-                                                        margin: '2px',
-                                                    }}
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                </Grid>
-
-                            </Grid>
-
-
-                        </Card>
+                      return (
+                        <div
+                          key={index}
+                          className="card-keyword-disc"
+                          style={{
+                            backgroundColor: showDisc ? color : "transparent",
+                            borderRadius: "50%",
+                            width: "12px",
+                            height: "12px",
+                            margin: "2px",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </Grid>
+              </Grid>
+            </Card>
           ))
         )}
       </Container>
     );
   });
 
-    const resetAllFilters = () => {
-        setSelectedCollection([]);
-        setSelectedContentTier([]);
-        setSelectedType([]);
-        setSelectedCountry([]);
-        setSelectedLanguage([]);
-        setSelectedProvider([]);
-        setSelectedDataProvider([]);
-        setSelectedColourPalette([]);
-        setSelectedImageAspectRatio([]);
-        setSelectedImageSize([]);
-        setSelectedMimeType([]);
-        setSelectedRights([]);
-        setAnyFilterSelected(false);
-    };
+  const resetAllFilters = () => {
+    setSelectedCollection([]);
+    setSelectedContentTier([]);
+    setSelectedType([]);
+    setSelectedCountry([]);
+    setSelectedLanguage([]);
+    setSelectedProvider([]);
+    setSelectedDataProvider([]);
+    setSelectedColourPalette([]);
+    setSelectedImageAspectRatio([]);
+    setSelectedImageSize([]);
+    setSelectedMimeType([]);
+    setSelectedRights([]);
+    setAnyFilterSelected(false);
+  };
 
-    const FilterChip = ({selectedValues, onRemove}) => (
-        <span
-            className="badge b-form-tag d-inline-flex align-items-baseline mw-100 remove-button badge-primary-light badge-pill">
-      {selectedValues.map((value, index) => (
+  const FilterChip = ({ selectedValues, onRemove }) => {
+    if (!Array.isArray(selectedValues)) {
+      selectedValues = [selectedValues]; // Convert to an array if it's not already
+      setShowProgressbar(true); // Show progress bar before the API call
+    }
+    return (
+      <span
+        className="badge b-form-tag d-inline-flex align-items-baseline mw-100 remove-button badge-primary-light badge-pill"
+        style={{ flexWrap: "wrap" }}
+      >
+        {selectedValues.map((value, index) => (
           <StyledChip
-              key={index}
-              style={{
-                  backgroundColor: "#daeaf8",
-                  color: "#4d4d4d",
-                  margin: "6px",
-                  borderRadius: "2.25rem",
-              }}
-              label={value.label}
-              onDelete={() => onRemove(value)}
+            key={index}
+            style={{
+              backgroundColor: "#daeaf8",
+              color: "#4d4d4d",
+              margin: "6px",
+              borderRadius: "2.25rem",
+            }}
+            label={value.label}
+            onDelete={() => onRemove(value)}
           />
-      ))}
-    </span>
+        ))}
+      </span>
     );
+  };
 
-    const Filters = () => (
-        <div>
-            <div className={"keyword-container"}>
-                { [...new Set(artworkData.flatMap(artwork => artwork.keywords || []))].map((keyword, index) => (
-                    <div key={index} className={"keyword-item"} onClick={() => handleKeywordClick(keyword)}>
-
-                            <span
-                                className={"keyword-disc"}
-                                style={{backgroundColor: keywordColors[keyword] ? keywordColors[keyword] : 'transparent'}}
-                            />
-                        <span>{keyword}</span>
-                    </div>
-                ))}
-            </div>
-            <button
-                aria-controls="advanced-filters"
-                type="button"
-                className="btn search-toggle btn-link strong"
+  const Filters = () => (
+    <div>
+      <div className={"keyword-container"}>
+        {[
+          ...new Set(artworkData.flatMap((artwork) => artwork.keywords || [])),
+        ].map((keyword, index) => (
+          <div
+            key={index}
+            className={"keyword-item"}
+            onClick={() => handleKeywordClick(keyword)}
+          >
+            <span
+              className={"keyword-disc"}
+              style={{
+                backgroundColor: keywordColors[keyword]
+                  ? keywordColors[keyword]
+                  : "transparent",
+              }}
+            />
+            <span>{keyword}</span>
+          </div>
+        ))}
+      </div>
+      <button
+        aria-controls="advanced-filters"
+        type="button"
+        className="btn search-toggle btn-link strong"
+      >
+        {showAdvancedFilters
+          ? "> HIDE SHOW ADVANCED SEARCH"
+          : "< SHOW ADVANCED SEARCH"}
+      </button>
+      <div className="row filters-header border-bottom border-top d-flex justify-content-between align-items-center">
+        <div className="filters-title">Search filters</div>
+        {anyFilterSelected && (
+          <button
+            type="button"
+            className="btn btn-outline-primary"
+            onClick={resetAllFilters}
+          >
+            Reset Filters
+          </button>
+        )}
+      </div>
+      <Form>
+        {/* Collection Filter */}
+        <Form.Group controlId="collectionFilter" className="paddingTop">
+          <Form.Label className="label d-flex align-items-center">
+            Collection
+            <OverlayTrigger
+              placement="right"
+              overlay={
+                <Tooltip id="tooltip">
+                  Selecting a THEME may provide further filter options, e.g. the
+                  Newspapers theme includes a DATE ISSUED filter.
+                </Tooltip>
+              }
             >
-                {showAdvancedFilters
-                    ? "> HIDE SHOW ADVANCED SEARCH"
-                    : "< SHOW ADVANCED SEARCH"}
-            </button>
-            <div
-                className="row filters-header border-bottom border-top d-flex justify-content-between align-items-center">
-                <div className="filters-title">Search filters</div>
-                {anyFilterSelected && (
-                    <button
-                        type="button"
-                        className="btn btn-outline-primary"
-                        onClick={resetAllFilters}
-                    >
-                        Reset Filters
-                    </button>
-                )}
-            </div>
-            <Form>
-                {/* Collection Filter */}
-                <Form.Group controlId="collectionFilter" className="paddingTop">
-                    <Form.Label className="label d-flex align-items-center">
-                        Collection
-                        <OverlayTrigger
-                            placement="right"
-                            overlay={
-                                <Tooltip id="tooltip">
-                                    Selecting a THEME may provide further filter options, e.g. the
-                                    Newspapers theme includes a DATE ISSUED filter.
-                                </Tooltip>
-                            }
-                        >
-                            <FaInfoCircle className="tooltipStyle" color="gray"/>
-                        </OverlayTrigger>
-                    </Form.Label>
-                    <FilterChip
-                        selectedValues={selectedCollection}
-                        onRemove={() => setSelectedCollection([])}
-                    />
-                    <Select
-                        options={COLLECTION_OPTIONS}
-                        isMulti
-                        value={selectedCollection}
-                        onChange={(selectedOption) => setSelectedCollection(selectedOption)}
-                    />
-                </Form.Group>
+              <FaInfoCircle className="tooltipStyle" color="gray" />
+            </OverlayTrigger>
+          </Form.Label>
+          <FilterChip
+            selectedValues={selectedCollection}
+            onRemove={() => setSelectedCollection([])}
+          />
+          <Select
+            options={COLLECTION_OPTIONS}
+            value={selectedCollection}
+            onChange={(selectedOption) => {
+              // Ensure selectedCollection is always an array
+              if (!Array.isArray(selectedOption)) {
+                setSelectedCollection([selectedOption]);
+              } else {
+                setSelectedCollection(selectedOption);
+              }
+            }}
+          />
+        </Form.Group>
 
         {/* Content Tier Filter */}
         <Form.Group controlId="contentTierFilter">
@@ -1270,149 +1363,145 @@ useEffect(() => {
               />
             </Form.Group>
 
-                        {/* Image Aspect Ratio Filter */}
-                        <Form.Group controlId="imageAspectRatioFilter">
-                            <Form.Label className="label">Image Aspect Ratio</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedImageAspectRatio}
-                                onRemove={() => setSelectedImageAspectRatio([])}
-                            />
-                            <Select
-                                options={IMAGE_ASPECTRATIO_OPTIONS}
-                                isMulti
-                                value={selectedImageAspectRatio}
-                                onChange={(selectedOption) =>
-                                    setSelectedImageAspectRatio(selectedOption)
-                                }
-                            />
-                        </Form.Group>
-
-                        {/* Image Size Filter */}
-                        <Form.Group controlId="imageSizeFilter">
-                            <Form.Label className="label">Image Size</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedImageSize}
-                                onRemove={() => setSelectedImageSize([])}
-                            />
-                            <Select
-                                options={IMAGE_SIZE_OPTIONS}
-                                isMulti
-                                value={selectedImageSize}
-                                onChange={(selectedOption) =>
-                                    setSelectedImageSize(selectedOption)
-                                }
-                            />
-                        </Form.Group>
-
-                        {/* Mime Type Filter */}
-                        <Form.Group controlId="mimeTypeFilter">
-                            <Form.Label className="label">Mime Type</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedMimeType}
-                                onRemove={() => setSelectedMimeType([])}
-                            />
-                            <Select
-                                options={MIME_TYPE_OPTIONS}
-                                isMulti
-                                value={selectedMimeType}
-                                onChange={(selectedOption) =>
-                                    setSelectedMimeType(selectedOption)
-                                }
-                            />
-                        </Form.Group>
-
-                        {/* Rights Filter */}
-                        <Form.Group controlId="rightsFilter">
-                            <Form.Label className="label">Rights</Form.Label>
-                            <FilterChip
-                                selectedValues={selectedRights}
-                                onRemove={() => setSelectedRights([])}
-                            />
-                            <Select
-                                options={RIGHTS_OPTIONS}
-                                isMulti
-                                value={selectedRights}
-                                onChange={(selectedOption) => setSelectedRights(selectedOption)}
-                            />
-                        </Form.Group>
-                    </div>
-                )}
-            </Form>
-        </div>
-    );
-
-    const Pagination = () => {
-        const handleKeyPress = (e) => {
-            if (
-                [46, 8, 9, 27, 110, 190].indexOf(e.keyCode) !== -1 ||
-                (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
-                (e.keyCode >= 35 && e.keyCode <= 40)
-            ) {
-                return;
-            }
-            if (
-                (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
-                (e.keyCode < 96 || e.keyCode > 105)
-            ) {
-                e.preventDefault();
-            }
-
-            if (e.key === "Enter") {
-                const page = e.target.value ? Number(e.target.value) : 0;
-                if (page >= 1 && page <= totalRecords / 24) {
-                    handlePageChange(page);
+            {/* Image Aspect Ratio Filter */}
+            <Form.Group controlId="imageAspectRatioFilter">
+              <Form.Label className="label">Image Aspect Ratio</Form.Label>
+              <FilterChip
+                selectedValues={selectedImageAspectRatio}
+                onRemove={() => setSelectedImageAspectRatio([])}
+              />
+              <Select
+                options={IMAGE_ASPECTRATIO_OPTIONS}
+                isMulti
+                value={selectedImageAspectRatio}
+                onChange={(selectedOption) =>
+                  setSelectedImageAspectRatio(selectedOption)
                 }
-            }
-        };
+              />
+            </Form.Group>
 
-        const nextPage = () => {
-            if (currentPage < totalRecords / 24) {
-                handlePageChange(currentPage + 1);
-            }
-        };
+            {/* Image Size Filter */}
+            <Form.Group controlId="imageSizeFilter">
+              <Form.Label className="label">Image Size</Form.Label>
+              <FilterChip
+                selectedValues={selectedImageSize}
+                onRemove={() => setSelectedImageSize([])}
+              />
+              <Select
+                options={IMAGE_SIZE_OPTIONS}
+                isMulti
+                value={selectedImageSize}
+                onChange={(selectedOption) =>
+                  setSelectedImageSize(selectedOption)
+                }
+              />
+            </Form.Group>
 
-        const previousPage = () => {
-            if (currentPage > 1) {
-                handlePageChange(currentPage - 1);
-            }
-        };
+            {/* Mime Type Filter */}
+            <Form.Group controlId="mimeTypeFilter">
+              <Form.Label className="label">Mime Type</Form.Label>
+              <FilterChip
+                selectedValues={selectedMimeType}
+                onRemove={() => setSelectedMimeType([])}
+              />
+              <Select
+                options={MIME_TYPE_OPTIONS}
+                isMulti
+                value={selectedMimeType}
+                onChange={(selectedOption) =>
+                  setSelectedMimeType(selectedOption)
+                }
+              />
+            </Form.Group>
 
-        return (
-            <div className="pagination-ep d-flex align-items-center">
-                <button className="btn-page-nav mx-3" onClick={previousPage}>
-                    <FontAwesomeIcon icon={faArrowLeft}/>
-                    &nbsp;PREVIOUS
-                </button>
+            {/* Rights Filter */}
+            <Form.Group controlId="rightsFilter">
+              <Form.Label className="label">Rights</Form.Label>
+              <FilterChip
+                selectedValues={selectedRights}
+                onRemove={() => setSelectedRights([])}
+              />
+              <Select
+                options={RIGHTS_OPTIONS}
+                isMulti
+                value={selectedRights}
+                onChange={(selectedOption) => setSelectedRights(selectedOption)}
+              />
+            </Form.Group>
+          </div>
+        )}
+      </Form>
+    </div>
+  );
 
-                <input
-                    type="number"
-                    className="form-control mx-3"
-                    min={1}
-                    max={totalRecords / 24}
-                    onKeyDown={handleKeyPress}
-                    defaultValue={currentPage}
-                    style={{width: "100px", textAlign: "center"}}
-                />
+  const Pagination = () => {
+    const [inputValue, setInputValue] = useState(currentPage);
 
-                <span className="mx-3">
-          OF{" "}
-                    {Math.floor(
-                        totalRecords / 24 < 1
-                            ? 1
-                            : totalRecords / 24 > 42
-                            ? 42
-                            : totalRecords / 24
-                    )}
-        </span>
-                <button className="btn-page-nav mx-3" onClick={nextPage}>
-                    NEXT&nbsp;
-                    <FontAwesomeIcon icon={faArrowRight}/>
-                </button>
-            </div>
-        );
+    const handleKeyPress = (e) => {
+      // Check if the pressed key is "Enter"
+      if (e.key === "Enter" || e.keyCode === 13) {
+        const page = Number(e.target.value);
+
+        if (page >= 1 && page <= totalRecords / 24) {
+          handlePageChange(page);
+        }
+      }
     };
 
-    const childRef = useRef();
+    const handleInputChange = (e) => {
+      setInputValue(e.target.value);
+      e.preventDefault();
+    };
+
+    const nextPage = () => {
+      if (currentPage < totalRecords / 24) {
+        handlePageChange(inputValue + 1);
+      }
+    };
+
+    const previousPage = () => {
+      if (currentPage > 1) {
+        handlePageChange(inputValue - 1);
+      }
+    };
+
+    return (
+      <div className="pagination-ep d-flex align-items-center">
+        <button className="btn-page-nav mx-3" onClick={previousPage}>
+          <FontAwesomeIcon icon={faArrowLeft} />
+          &nbsp;PREVIOUS
+        </button>
+
+        <input
+          type="number"
+          className="form-control mx-3"
+          min={1}
+          max={totalRecords / 24}
+          onKeyDown={handleKeyPress}
+          value={inputValue}
+          onChange={handleInputChange}
+          style={{ width: "100px", textAlign: "center" }}
+        />
+
+        <span className="mx-3">
+          OF{" "}
+          {Math.floor(
+            totalRecords / 24 < 1
+              ? 1
+              : totalRecords / 24 > 42
+              ? 42
+              : totalRecords / 24
+          )}
+        </span>
+        <button className="btn-page-nav mx-3" onClick={nextPage}>
+          NEXT&nbsp;
+          <FontAwesomeIcon icon={faArrowRight} />
+        </button>
+      </div>
+    );
+  };
+
+  const childRef = useRef();
 
   const toggleAddModal = async (artwork, image) => {
     if (localStorage.getItem("loggedInUser")) {
@@ -1438,158 +1527,158 @@ useEffect(() => {
     setIsAddModalChildOpen(!isAddModalChildOpen);
   };
 
-    const handleGalleryNameChange = (e) => {
-        let value = e.target.value;
-        setGalleryName(value);
-    };
-    const handleGalleryDescriptionChange = (e) => {
-        let value = e.target.value;
-        setGalleryDescription(value);
-    };
-    const handleGalleryPublicChange = (e) => {
-        let value = e.target.checked;
-        console.log("check: ", value);
-        setGalleryPrivate(value);
-    };
+  const handleGalleryNameChange = (e) => {
+    let value = e.target.value;
+    setGalleryName(value);
+  };
+  const handleGalleryDescriptionChange = (e) => {
+    let value = e.target.value;
+    setGalleryDescription(value);
+  };
+  const handleGalleryPublicChange = (e) => {
+    let value = e.target.checked;
+    console.log("check: ", value);
+    setGalleryPrivate(value);
+  };
 
-    const handleCreateGallerySubmit = async (event) => {
-        event.preventDefault();
-        if (!galleryName) {
-            return;
+  const handleCreateGallerySubmit = async (event) => {
+    event.preventDefault();
+    if (!galleryName) {
+      return;
+    }
+    try {
+      const response = await saveGalleryIntoDataBase(
+        addedArtworkToGallery,
+        galleryName,
+        addedArtworkImageToGallery,
+        galleryDescription,
+        galleryPrivate
+      );
+    } catch (err) {
+      console.error(err);
+    }
+    const response = await getGalleries();
+    console.log("galleries", response.galleries);
+    setUserGalleries(response.galleries);
+    setGalleryName("");
+    setGalleryDescription("");
+    setGalleryPrivate(false);
+    setIsAddModalChildOpen(!isAddModalChildOpen);
+  };
+
+  const useStyles = makeStyles((theme) => ({
+    customButton: {
+      maxWidth: "750px",
+      minHeight: "55px",
+      minWidth: "550px",
+      display: "flex",
+      backgroundImage: (props) =>
+        !props.isGalleryButtonSelected ? `url(${props.image})` : "none", // Apply background image if not selected
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      position: "relative",
+      overflow: "hidden",
+      color: "#000", // Customize the text color as needed
+      fontSize: "1rem", // Customize the font size as needed
+      fontWeight: "bold", // Customize the font weight as needed
+      cursor: "pointer", // Add a pointer cursor to indicate interactivity
+      border: "none", // Remove the default button border
+      padding: theme.spacing(2), // Adjust padding as needed
+      "&:focus": {
+        outline: "none", // Remove the default focus outline
+      },
+    },
+    selectedButton: {
+      backgroundImage: "none", // Remove background image
+      backgroundColor: theme.palette.success.main,
+      "&:hover": {
+        backgroundColor: theme.palette.success.dark,
+      },
+    },
+    checkboxIcon: {
+      marginLeft: theme.spacing(1),
+    },
+  }));
+
+  const GalleryButton = ({ gallery, setIsAddModalChildOpen }) => {
+    const [isGalleryButtonSelected, setIsGalleryButtonSelected] =
+      useState(false);
+    const [galleryArtWorks, setGalleryArtWorks] = useState([]);
+    const classes = useStyles({
+      image: gallery.image,
+      isGalleryButtonSelected,
+    });
+
+    useEffect(() => {
+      setGalleryArtWorks(gallery.artworks);
+    }, [isGalleryButtonSelected]);
+
+    const handleButtonClick = async () => {
+      setIsGalleryButtonSelected((prevState) => !prevState);
+
+      try {
+        if (!isGalleryButtonSelected) {
+          const response = await saveGalleryIntoDataBase(
+            addedArtworkToGallery,
+            gallery.gallery,
+            gallery.image,
+            gallery.galleryDescription,
+            gallery.isPrivate
+          );
+          let elementPos = gallery.artworks
+            .map(function (x) {
+              return x.artworkId.toLocaleLowerCase();
+            })
+            .indexOf(addedArtworkToGallery.artworkId.toLocaleLowerCase());
+          if (elementPos == -1) {
+            setGalleryArtWorks((updatedArtworks) => [
+              ...updatedArtworks,
+              addedArtworkToGallery,
+            ]);
+          }
+        } else {
+          const response = await deleteArtworkFromGallery(
+            addedArtworkToGallery.artworkId,
+            gallery._id
+          );
+          setGalleryArtWorks((updatedArtworks) =>
+            updatedArtworks.filter(
+              (artwork) =>
+                artwork.artworkId.toLocaleLowerCase() !==
+                addedArtworkToGallery.artworkId.toLocaleLowerCase()
+            )
+          );
         }
-        try {
-            const response = await saveGalleryIntoDataBase(
-                addedArtworkToGallery,
-                galleryName,
-                addedArtworkImageToGallery,
-                galleryDescription,
-                galleryPrivate
-            );
-        } catch (err) {
-            console.error(err);
-        }
-        const response = await getGalleries();
-        console.log("galleries", response.galleries);
-        setUserGalleries(response.galleries);
-        setGalleryName("");
-        setGalleryDescription("");
-        setGalleryPrivate(false);
-        setIsAddModalChildOpen(!isAddModalChildOpen);
+      } catch (err) {
+        console.error(err);
+      }
     };
 
-    const useStyles = makeStyles((theme) => ({
-        customButton: {
-            maxWidth: "750px",
-            minHeight: "55px",
-            minWidth: "550px",
-            display: "flex",
-            backgroundImage: (props) =>
-                !props.isGalleryButtonSelected ? `url(${props.image})` : "none", // Apply background image if not selected
-            justifyContent: "space-between",
-            alignItems: "center",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            position: "relative",
-            overflow: "hidden",
-            color: "#000", // Customize the text color as needed
-            fontSize: "1rem", // Customize the font size as needed
-            fontWeight: "bold", // Customize the font weight as needed
-            cursor: "pointer", // Add a pointer cursor to indicate interactivity
-            border: "none", // Remove the default button border
-            padding: theme.spacing(2), // Adjust padding as needed
-            "&:focus": {
-                outline: "none", // Remove the default focus outline
-            },
-        },
-        selectedButton: {
-            backgroundImage: "none", // Remove background image
-            backgroundColor: theme.palette.success.main,
-            "&:hover": {
-                backgroundColor: theme.palette.success.dark,
-            },
-        },
-        checkboxIcon: {
-            marginLeft: theme.spacing(1),
-        },
-    }));
-
-    const GalleryButton = ({gallery, setIsAddModalChildOpen}) => {
-        const [isGalleryButtonSelected, setIsGalleryButtonSelected] =
-            useState(false);
-        const [galleryArtWorks, setGalleryArtWorks] = useState([]);
-        const classes = useStyles({
-            image: gallery.image,
-            isGalleryButtonSelected,
-        });
-
-        useEffect(() => {
-            setGalleryArtWorks(gallery.artworks);
-        }, [isGalleryButtonSelected]);
-
-        const handleButtonClick = async () => {
-            setIsGalleryButtonSelected((prevState) => !prevState);
-
-            try {
-                if (!isGalleryButtonSelected) {
-                    const response = await saveGalleryIntoDataBase(
-                        addedArtworkToGallery,
-                        gallery.gallery,
-                        gallery.image,
-                        gallery.galleryDescription,
-                        gallery.isPrivate
-                    );
-                    let elementPos = gallery.artworks
-                        .map(function (x) {
-                            return x.artworkId.toLocaleLowerCase();
-                        })
-                        .indexOf(addedArtworkToGallery.artworkId.toLocaleLowerCase());
-                    if (elementPos == -1) {
-                        setGalleryArtWorks((updatedArtworks) => [
-                            ...updatedArtworks,
-                            addedArtworkToGallery,
-                        ]);
-                    }
-                } else {
-                    const response = await deleteArtworkFromGallery(
-                        addedArtworkToGallery.artworkId,
-                        gallery._id
-                    );
-                    setGalleryArtWorks((updatedArtworks) =>
-                        updatedArtworks.filter(
-                            (artwork) =>
-                                artwork.artworkId.toLocaleLowerCase() !==
-                                addedArtworkToGallery.artworkId.toLocaleLowerCase()
-                        )
-                    );
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        return (
-            <Grid item xs={8}>
-                <Button
-                    className={`${classes.customButton} ${
-                        isGalleryButtonSelected && classes.selectedButton
-                    }`}
-                    fullWidth
-                    onClick={handleButtonClick}
-                >
+    return (
+      <Grid item xs={8}>
+        <Button
+          className={`${classes.customButton} ${
+            isGalleryButtonSelected && classes.selectedButton
+          }`}
+          fullWidth
+          onClick={handleButtonClick}
+        >
           <span>
             {gallery.gallery +
-            " (" +
-            (!gallery.isPrivate ? "public" : "private") +
-            ") - " +
-            (galleryArtWorks == null ? 0 : galleryArtWorks.length + " items")}
+              " (" +
+              (!gallery.isPrivate ? "public" : "private") +
+              ") - " +
+              (galleryArtWorks == null ? 0 : galleryArtWorks.length + " items")}
           </span>
-                    {isGalleryButtonSelected && (
-                        <CheckCircleIcon className={classes.checkboxIcon}/>
-                    )}
-                </Button>
-            </Grid>
-        );
-    };
+          {isGalleryButtonSelected && (
+            <CheckCircleIcon className={classes.checkboxIcon} />
+          )}
+        </Button>
+      </Grid>
+    );
+  };
 
   return (
     <>
@@ -1615,7 +1704,10 @@ useEffect(() => {
                             borderRadius: "2.25rem",
                           }}
                           label={localStorage.getItem("currentQuery")}
-                          onDelete={() => childRef.current.handleDelete()}
+                          onDelete={() => {
+                            childRef.current.handleDelete();
+                            onChipDelete && onChipDelete();
+                          }}
                         />
                       </>
                     ) : (
@@ -1671,7 +1763,7 @@ useEffect(() => {
                         justifyContent: "left",
                         alignItems: "center",
                         marginBottom: "20px",
-                        color: "#000"
+                        color: "#000",
                       }}
                       fullWidth={true}
                       onClick={(event) => {
@@ -1713,111 +1805,111 @@ useEffect(() => {
                 {/*</DialogActions>*/}
               </Dialog>
 
-                            <Dialog
-                                sx={{top: "-5%", "& .MuiBackdrop-root": {opacity: "0.9"}}}
-                                open={isAddModalChildOpen}
-                                keepMounted
-                                onClose={() => setIsAddModalChildOpen(!isAddModalChildOpen)}
-                                aria-describedby="alert-dialog-slide-description"
-                            >
-                                <DialogTitle>{"Create gallery"}</DialogTitle>
-                                <DialogContent>
-                                    <DialogContentText id="alert-dialog-slide-description">
-                                        <form onSubmit={handleCreateGallerySubmit}>
-                                            <label> Gallery name</label>
-                                            <TextField
-                                                required
-                                                label=""
-                                                variant="outlined"
-                                                value={galleryName}
-                                                onChange={handleGalleryNameChange}
-                                                style={{
-                                                    maxWidth: "750px",
-                                                    minWidth: "550px",
-                                                    marginBottom: "0",
-                                                }}
-                                                fullWidth={true}
-                                            />
-                                            <label style={{fontSize: ".75rem"}}>
-                                                {" "}
-                                                Required field
-                                            </label>
-                                            <br/>
-                                            <br/>
-                                            <label> Gallery description</label>
-                                            <TextField
-                                                multiline
-                                                rows={4}
-                                                label=""
-                                                variant="outlined"
-                                                value={galleryDescription}
-                                                onChange={handleGalleryDescriptionChange}
-                                                fullWidth={true}
-                                            />
-                                            <FormControlLabel
-                                                style={{
-                                                    marginLeft: "1px",
-                                                }}
-                                                control={
-                                                    <Checkbox
-                                                        checked={galleryPrivate}
-                                                        onChange={handleGalleryPublicChange}
-                                                    />
-                                                }
-                                                label="Keep this gallery private"
-                                            />
-                                        </form>
-                                    </DialogContentText>
-                                </DialogContent>
-                                <DialogActions>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={3}>
-                                            <Button
-                                                style={{
-                                                    border: "2px solid black",
-                                                    backgroundColor: "white",
-                                                    cursor: "pointer",
-                                                    borderColor: "#2196F3",
-                                                    color: "dodgerblue",
-                                                    maxWidth: "85px",
-                                                    minWidth: "65px",
-                                                    marginLeft: "10px",
-                                                    marginBottom: "20px",
-                                                }}
-                                                variant="outlined"
-                                                onClick={() =>
-                                                    setIsAddModalChildOpen(!isAddModalChildOpen)
-                                                }
-                                            >
-                                                CANCEL
-                                            </Button>
-                                        </Grid>
-                                        <Grid item xs={3}></Grid>
-                                        <Grid item xs={2}></Grid>
-                                        <Grid item xs={4}>
-                                            <Button style={{}} onClick={handleCreateGallerySubmit}>
-                                                CREATE GALLERY
-                                            </Button>
-                                        </Grid>
-                                    </Grid>
-                                </DialogActions>
-                            </Dialog>
-                            {totalRecords > 1 && (
-                                <div className="d-flex justify-content-center">
-                                    <Pagination/>
-                                </div>
-                            )}
-                        </Col>
-                        <Col xs={12} sm={2} className="col-filters">
-                            <Filters/>
-                        </Col>
-                    </Row>
-                </Container>
-            ) : (
-                <></>
-            )}
-        </>
-    );
+              <Dialog
+                sx={{ top: "-5%", "& .MuiBackdrop-root": { opacity: "0.9" } }}
+                open={isAddModalChildOpen}
+                keepMounted
+                onClose={() => setIsAddModalChildOpen(!isAddModalChildOpen)}
+                aria-describedby="alert-dialog-slide-description"
+              >
+                <DialogTitle>{"Create gallery"}</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-slide-description">
+                    <form onSubmit={handleCreateGallerySubmit}>
+                      <label> Gallery name</label>
+                      <TextField
+                        required
+                        label=""
+                        variant="outlined"
+                        value={galleryName}
+                        onChange={handleGalleryNameChange}
+                        style={{
+                          maxWidth: "750px",
+                          minWidth: "550px",
+                          marginBottom: "0",
+                        }}
+                        fullWidth={true}
+                      />
+                      <label style={{ fontSize: ".75rem" }}>
+                        {" "}
+                        Required field
+                      </label>
+                      <br />
+                      <br />
+                      <label> Gallery description</label>
+                      <TextField
+                        multiline
+                        rows={4}
+                        label=""
+                        variant="outlined"
+                        value={galleryDescription}
+                        onChange={handleGalleryDescriptionChange}
+                        fullWidth={true}
+                      />
+                      <FormControlLabel
+                        style={{
+                          marginLeft: "1px",
+                        }}
+                        control={
+                          <Checkbox
+                            checked={galleryPrivate}
+                            onChange={handleGalleryPublicChange}
+                          />
+                        }
+                        label="Keep this gallery private"
+                      />
+                    </form>
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Grid container spacing={2}>
+                    <Grid item xs={3}>
+                      <Button
+                        style={{
+                          border: "2px solid black",
+                          backgroundColor: "white",
+                          cursor: "pointer",
+                          borderColor: "#2196F3",
+                          color: "dodgerblue",
+                          maxWidth: "85px",
+                          minWidth: "65px",
+                          marginLeft: "10px",
+                          marginBottom: "20px",
+                        }}
+                        variant="outlined"
+                        onClick={() =>
+                          setIsAddModalChildOpen(!isAddModalChildOpen)
+                        }
+                      >
+                        CANCEL
+                      </Button>
+                    </Grid>
+                    <Grid item xs={3}></Grid>
+                    <Grid item xs={2}></Grid>
+                    <Grid item xs={4}>
+                      <Button style={{}} onClick={handleCreateGallerySubmit}>
+                        CREATE GALLERY
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </DialogActions>
+              </Dialog>
+              {!pageIsLoading && totalRecords > 1 && (
+                <div className="d-flex justify-content-center">
+                  <Pagination />
+                </div>
+              )}
+            </Col>
+            <Col xs={12} sm={2} className="col-filters">
+              <Filters />
+            </Col>
+          </Row>
+        </Container>
+      ) : (
+        <></>
+      )}
+    </>
+  );
 };
 
 export default SearchArtworks;
