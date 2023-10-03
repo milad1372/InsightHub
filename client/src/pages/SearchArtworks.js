@@ -162,20 +162,26 @@ const SearchArtworks = ({
     }
     return {};
   });
-// const countryOptions = facets.find(facet => facet.name === "COUNTRY")
-//                              ?.fields.map(field => ({ value: field.label, label: field.label })) 
-//                              || [];
-const extractFacetOptions = (facets, facetName) => {
-  return (
-    facets
-      .find(facet => facet.name === facetName)?.fields
-      .map(field => ({
-        value: field.label,
-        label: `${field.label} (${field.count})`, // Modified this line
-        count: field.count
-      })) || []
-  );
-};
+
+const extractFacetOptions = (facets = [], facetName) => {
+    // Ensure facets is an array
+    if (!Array.isArray(facets)) {
+      console.error("Expected 'facets' to be an array, but got:", facets);
+      return [];
+    }
+  
+    // Find the correct facet and its fields
+    const facetFields = facets.find(facet => facet.name === facetName)?.fields;
+  
+    // If facetFields exists and is an array, map over it; otherwise, return an empty array
+    return Array.isArray(facetFields)
+      ? facetFields.map(field => ({
+          value: field.label,
+          label: `${field.label} (${field.count})`,
+          count: field.count
+        }))
+      : [];
+  };
 const countryOptions = extractFacetOptions(facets, "COUNTRY");
 const dataProviderOptions = extractFacetOptions(facets, "DATA_PROVIDER");
 const ProviderOptions = extractFacetOptions(facets, "PROVIDER");
